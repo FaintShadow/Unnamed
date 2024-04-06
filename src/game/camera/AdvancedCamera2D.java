@@ -12,16 +12,19 @@ import java.util.Map;
 import static com.raylib.Raylib.IsKeyDown;
 
 public class AdvancedCamera2D extends Raylib.Camera2D{
+    private Map<String, Integer> keys = new HashMap<>();
 
-    public Map<String, Integer> keys = new HashMap<>();
+    private Jaylib.Vector2 targetV = new Jaylib.Vector2();
 
-    public Jaylib.Vector2 targetV = new Jaylib.Vector2();
-
-    public AdvancedCamera2D() {
-        // just create a Game.camera, and then you can add what you want using the provided methods.
+    public Map<String, Integer> getKeys() {
+        return keys;
     }
 
-    public void AddControls(String name, int key) {
+    public Jaylib.Vector2 getTargetV() {
+        return targetV;
+    }
+
+    public void addControls(String name, int key) {
         this.keys.put(name, key);
     }
 
@@ -34,13 +37,13 @@ public class AdvancedCamera2D extends Raylib.Camera2D{
     }
 
     // Camera Target Vector:
-    public void CTV(List<? extends Entity> EL) {
+    public void cTV(List<? extends Entity> el) {
         float totX = 0.0F;
         float totY = 0.0F;
         float ignoredistance = 400.0F;
         int i = 0;
 
-        for (Entity E : EL) {
+        for (Entity E : el) {
             if (Raylib.Vector2Distance(E.position, this.targetV) < ignoredistance) {
                 totX += E.position.x();
                 totY += E.position.y();
@@ -48,8 +51,8 @@ public class AdvancedCamera2D extends Raylib.Camera2D{
             }
         }
         if (i == 0){
-            totX = EL.get(0).position.x();
-            totY = EL.get(0).position.y();
+            totX = el.get(0).position.x();
+            totY = el.get(0).position.y();
             i++;
         }
 
@@ -60,65 +63,65 @@ public class AdvancedCamera2D extends Raylib.Camera2D{
     }
 
     // Single U? Camera Center:
-    public void SUCC(int width, int height, Entity entity) {
+    public void sUCC(int width, int height, Entity entity) {
         super.offset(new Jaylib.Vector2(width / 2.0F, height / 2.0F));
         super.target(entity.position);
     }
 
     // Single U? Camera Center:
-    public void MUCC(int width, int height) {
+    public void mUCC(int width, int height) {
         super.offset(new Jaylib.Vector2(width / 2.0F, height / 2.0F));
         super.target(targetV);
     }
 
     // Single U? Camera Center Smooth Follow
-    public static void SUCCSF(AdvancedCamera2D camera, Entity entity, int width, int height, float delta) {
+    public static void sUCCSF(AdvancedCamera2D camera, Entity entity, int width, int height, float delta) {
         float minSPD = 30.0F;
-        float min_eff_length = 10.0F;
+        float minEffLength = 10.0F;
         float fractionSPD = 0.8F;
         camera.offset(new Jaylib.Vector2((width / 2), (height / 2)));
-        Raylib.Vector2 Difference = Raylib.Vector2Subtract(entity.position, camera.target());
-        float length = Raylib.Vector2Length(Difference);
-        if (length > min_eff_length) {
+        Raylib.Vector2 difference = Raylib.Vector2Subtract(entity.position, camera.target());
+        float length = Raylib.Vector2Length(difference);
+        if (length > minEffLength) {
             float speed = Math.max(fractionSPD * length, minSPD);
-            camera.target(Raylib.Vector2Add(camera.target(), Raylib.Vector2Scale(Difference, speed * delta / length)));
+            camera.target(Raylib.Vector2Add(camera.target(), Raylib.Vector2Scale(difference, speed * delta / length)));
         }
 
     }
 
     // Multi U? Camera Center Smooth Follow:
-    public static void MUCCSF(AdvancedCamera2D camera, int width, int height, float delta) {
+    public static void mUCCSF(AdvancedCamera2D camera, int width, int height, float delta) {
         float minSPD = 30.0F;
-        float min_eff_length = 10.0F;
+        float minEffLength = 10.0F;
         float fractionSPD = 0.8F;
 
         camera.offset().x((width / 2));
         camera.offset().y((height / 2));
-        Raylib.Vector2 Difference = Raylib.Vector2Subtract(camera.targetV, camera.target());
+        Raylib.Vector2 difference = Raylib.Vector2Subtract(camera.targetV, camera.target());
 
-        float length = Raylib.Vector2Length(Difference);
-        if (length > min_eff_length) {
+        float length = Raylib.Vector2Length(difference);
+        if (length > minEffLength) {
             float speed = Math.max(fractionSPD * length, minSPD);
-            camera.target(Raylib.Vector2Add(camera.target(), Raylib.Vector2Scale(Difference, speed * delta / length)));
+            camera.target(Raylib.Vector2Add(camera.target(), Raylib.Vector2Scale(difference, speed * delta / length)));
         }
 
     }
 
     // Multi Camera Center
-    public static void MUCCIM(AdvancedCamera2D camera, List<Tile> tiles, int width, int height, float delta) {
+    public static void mUCCIM(AdvancedCamera2D camera, List<Tile> tiles, int width, int height, float delta) {
         float minSPD = 30.0F;
-        float min_eff_length = 10.0F;
+        float minEffLength = 10.0F;
         float fractionSPD = 0.8F;
 
         camera.offset().x((width / 2));
         camera.offset().y((height / 2));
-        Raylib.Vector2 Difference = Raylib.Vector2Subtract(camera.targetV, camera.target());
+        Raylib.Vector2 difference = Raylib.Vector2Subtract(camera.targetV, camera.target());
 
-        float length = Raylib.Vector2Length(Difference);
+        float length = Raylib.Vector2Length(difference);
         float minX;
-        if (length > min_eff_length) {
+        if (length > minEffLength) {
             minX = Math.max(fractionSPD * length, minSPD);
-            camera.target(Raylib.Vector2Add(camera.target(), Raylib.Vector2Scale(Difference, minX * delta / length)));
+            camera.target(Raylib.Vector2Add(camera.target(), Raylib.Vector2Scale(difference, minX * delta / length)));
         }
 
         minX = 0.0F;
@@ -154,20 +157,20 @@ public class AdvancedCamera2D extends Raylib.Camera2D{
     }
 
     public void cameraController(float delta){
-        int CSPD = 300;
-        int CUSPD = 300;
+        int cspd = 300;
+        int cuspd = 300;
 
         if (IsKeyDown(keys.get("left"))) {
-            targetV.x(targetV.x() - (CSPD * delta));
+            targetV.x(targetV.x() - (cspd * delta));
         }
         if (IsKeyDown(keys.get("right"))) {
-            targetV.x(targetV.x() + (CSPD * delta));
+            targetV.x(targetV.x() + (cspd * delta));
         }
         if (IsKeyDown(keys.get("up"))) {
-            targetV.y(targetV.y() - (CUSPD * delta));
+            targetV.y(targetV.y() - (cuspd * delta));
         }
         if (IsKeyDown(keys.get("down"))){
-            targetV.y(targetV.y() + (CUSPD * delta));
+            targetV.y(targetV.y() + (cuspd * delta));
         }
     }
 

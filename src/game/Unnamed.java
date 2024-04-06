@@ -33,63 +33,16 @@ public class Unnamed {
     public static final int TILESIZE = (int) Math.pow(2, 5);
     public static final int TILESCALEDSIZE = TILESIZE * WORLDSCALE;
     public static final int GRAVITY = 400;
-
     private static boolean debug = false;
     private static List<Player> pL = new ArrayList<>(4);
     private static HashMap<String, HashMap<String, Texture>> textures = new HashMap<>();
 
-    public static void debugInfo() {
-        String[] ldebuginfo = new String[]{
-                "FPS: " + GetFPS(),
-                "Camera X/Y:",
-                "Loaded Chunks: ",
-        };
-        int i = 0;
-        for (String msg : ldebuginfo) {
-            DrawText(msg, 10, DEBUGFONTSIZE * (i), DEBUGFONTSIZE, BLACK);
-            i++;
-        }
-        i = 0;
-
-        String[] rdebuginfo = new String[]{
-                GetCurrentMonitor() + " : Monitor",
-                GAMEWIDTH + " : Game Width",
-                GAMEHEIGHT + " : Game Height",
-                GetFrameTime() + " : Frame Time"
-        };
-
-        for (String msg : rdebuginfo) {
-            DrawText(msg, GAMEWIDTH - msg.length() * (DEBUGFONTSIZE / 2), DEBUGFONTSIZE * (i), DEBUGFONTSIZE, BLACK);
-            i++;
-        }
-    }
-
-    public static List<Tile> genChunk(int x, int y, Texture underGround, Texture groundGrass) {
-        ArrayList<Tile> chunkTiles = new ArrayList<>();
-
-        for (int yp = 0; yp < CHUNKSIZE; yp++) {
-            for (int xp = 0; xp < CHUNKSIZE; xp++) {
-                float targetY = y + ((float) yp * TILESCALEDSIZE);
-                float targetX = x + ((float) xp * TILESCALEDSIZE);
-                double height = 0.3 * ( -3.2 * sin(-0.7 * x+xp) - 0.3 * sin(-1.7 * exp(x+xp)) + 1.9 * sin(0.7 * PI * x+xp));
-                Rectangle rec = new Rectangle(targetX, targetY, TILESCALEDSIZE, TILESCALEDSIZE);
-                Tile tile = null;
-                if (targetY > 300) {
-                    tile = new Tile(rec, false, false, false, RED, underGround);
-                } else if (targetY >= 266) {
-                    tile = new Tile(rec, true, false, false, PINK, groundGrass);
-                }
-                if (tile != null) {
-                    chunkTiles.add(tile);
-                }
-            }
-        }
-        return chunkTiles;
-    }
-
     public static void initPlayers() {
+        Texture underGround = LoadTexture("textures/UnderGround.png");
+        Texture groundGrass = LoadTexture("textures/GroundGrass.png");
+        Tile tile = World.genChunk((int) (Math.random()*1000), (int) (Math.random()*100), underGround, groundGrass).getFirst();
         // - PL1:
-        pL.add(new Player(new Jaylib.Vector2(400, 100), 0, WHITE, TILESIZE, WORLDSCALE));
+        pL.add(new Player(new Jaylib.Vector2(tile.position.x() + (TILESCALEDSIZE%2), tile.position.y() - TILESCALEDSIZE), 0, WHITE, TILESIZE, WORLDSCALE));
         Player player = pL.get(0);
         player.setRectangle(new Rectangle((player.position.x() - ((float) TILESIZE / 2)) * 2, (player.position.y() - ((float) TILESIZE / 2)) * 2, WORLDSCALE * (float) TILESIZE, WORLDSCALE * (float) TILESIZE));
         player.addControls("Left", KEY_A);
@@ -118,14 +71,14 @@ public class Unnamed {
     }
 
     public static void setCameraProps(AdvancedCamera2D camera) {
-        camera.AddControls("up", KEY_UP);
-        camera.AddControls("down", KEY_DOWN);
-        camera.AddControls("left", KEY_LEFT);
-        camera.AddControls("right", KEY_RIGHT);
-        camera.AddControls("zoom_in", KEY_KP_ADD);
-        camera.AddControls("zoom_out", KEY_KP_SUBTRACT);
+        camera.addControls("up", KEY_UP);
+        camera.addControls("down", KEY_DOWN);
+        camera.addControls("left", KEY_LEFT);
+        camera.addControls("right", KEY_RIGHT);
+        camera.addControls("zoom_in", KEY_KP_ADD);
+        camera.addControls("zoom_out", KEY_KP_SUBTRACT);
 
-        camera.setTargetVector(new Jaylib.Vector2(pL.get(0).position.x(), pL.get(0).position.y()));
+        camera.setTargetVector(new Jaylib.Vector2(pL.getFirst().position.x(), pL.getFirst().position.y()));
         camera.target(camera.getTargetVector());
         camera.offset(new Jaylib.Vector2((float) GAMEWIDTH / 2, (float) GAMEHEIGHT / 2));
         camera.rotation(0);
@@ -157,13 +110,14 @@ public class Unnamed {
         while (!WindowShouldClose()) {
             float deltaTime = GetFrameTime();
 
-            camera.CTV(pL);
-            AdvancedCamera2D.MUCCSF(camera, GAMEWIDTH, GAMEHEIGHT, deltaTime);
+            camera.cTV(pL);
+            AdvancedCamera2D.mUCCSF(camera, GAMEWIDTH, GAMEHEIGHT, deltaTime);
+            //camera.cameraController(deltaTime);
 
-            if (IsKeyDown(camera.keys.get("zoom_in"))) {
+            if (IsKeyDown(camera.getKeys().get("zoom_in"))) {
                 camera.zoom(camera.zoom() + deltaTime);
             }
-            if (IsKeyDown(camera.keys.get("zoom_out"))) {
+            if (IsKeyDown(camera.getKeys().get("zoom_out"))) {
                 camera.zoom(camera.zoom() - deltaTime);
             }
             if (camera.zoom() > 3.0) {
