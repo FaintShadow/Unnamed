@@ -35,12 +35,10 @@ public class Unnamed {
     public static final int GRAVITY = 400;
     private static boolean debug = false;
     private static List<Player> pL = new ArrayList<>(4);
-    private static HashMap<String, HashMap<String, Texture>> textures = new HashMap<>();
+    private static Texture textureSprite = LoadTexture("/src/game/assets/tiles.png");
 
     public static void initPlayers() {
-        Texture underGround = LoadTexture("textures/UnderGround.png");
-        Texture groundGrass = LoadTexture("textures/GroundGrass.png");
-        Tile tile = World.genChunk((int) (Math.random()*1000), (int) (Math.random()*100), underGround, groundGrass).getFirst();
+        Tile tile = World.genChunk((int) (Math.random()*1000), (int) (Math.random()*100), textureSprite).getFirst();
         // - PL1:
         pL.add(new Player(new Jaylib.Vector2(tile.position.x() + (TILESCALEDSIZE%2), tile.position.y() - TILESCALEDSIZE), 0, WHITE, TILESIZE, WORLDSCALE));
         Player player = pL.get(0);

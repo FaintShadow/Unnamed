@@ -5,6 +5,7 @@ import game.camera.AdvancedCamera2D;
 import com.raylib.Jaylib;
 import com.raylib.Raylib;
 import game.noise.Perlin1D;
+import game.textures.TextureManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +17,7 @@ import static com.raylib.Raylib.DrawTextureEx;
 
 public class World {
     private static Perlin1D noise = new Perlin1D(0.5, 8);
+
     public static void renderChunks(AdvancedCamera2D camera, Jaylib.Vector2 cameraAncher, Map<String, List<Tile>> map, Raylib.Texture underGround, Raylib.Texture groundGrass) {
         int ccY = (int) ((GAMEHEIGHT * (2 / camera.zoom())) / (CHUNKSIZE * TILESCALEDSIZE)) + 1;
         int ccX = (int) ((GAMEWIDTH * (3 / camera.zoom())) / (CHUNKSIZE * TILESCALEDSIZE)) - 1;
@@ -29,17 +31,17 @@ public class World {
                 int yCD = targetY * (CHUNKSIZE * TILESCALEDSIZE);
                 String chunkIndex = xCD + ";" + yCD;
 
-                map.computeIfAbsent(chunkIndex, k -> genChunk(xCD, yCD, underGround, groundGrass));
+                map.computeIfAbsent(chunkIndex, k -> genChunk(xCD, yCD));
 
                 for (Tile tile : map.get(chunkIndex)) {
-                    DrawTextureEx(tile.texture, tile.position, 0, (tile.rectangle.height() / tile.texture.width()), WHITE);
+                    DrawTextureEx(tile.texture, tile.position, 0, 1, WHITE);
                 }
 
             }
         }
     }
 
-    public static List<Tile> genChunk(int x, int y, Raylib.Texture underGround, Raylib.Texture groundGrass) {
+    public static List<Tile> genChunk(int x, int y) {
         ArrayList<Tile> chunkTiles = new ArrayList<>();
 
         for (int yp = 0; yp < CHUNKSIZE; yp++) {
@@ -50,9 +52,9 @@ public class World {
                 Tile tile = null;
                 double height = noise.perlinNoise1D(x + xp) * 100;
                 if (targetY > height) {
-                    tile = new Tile(rec, false, false, false, RED, underGround);
+                    tile = new Tile(rec, false, false, false, RED, TextureManager.getTexture(0, 0));
                 } else if (targetY + TILESCALEDSIZE > height) {
-                    tile = new Tile(rec, true, false, false, PINK, groundGrass);
+                    tile = new Tile(rec, true, false, false, PINK, TextureManager.getTexture(1,0));
                 }
                 if (tile != null) {
                     chunkTiles.add(tile);
