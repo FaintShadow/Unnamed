@@ -1,0 +1,26 @@
+{
+    "activeFile": "adventure.tsx",
+    "expandedProjectPaths": [
+        "."
+    ],
+    "file.lastUsedOpenFilter": "All Files (*)",
+    "fileStates": {
+        "adventure.tsx": {
+            "scaleInDock": 1,
+            "scaleInEditor": 1.5
+        }
+    },
+    "last.imagePath": "D:/IdeaProjects/Unnamed/src/game/Textures/assets",
+    "openFiles": [
+        "adventure.tsx"
+    ],
+    "project": "Unnamed.tiled-project",
+    "recentFiles": [
+        "adventure.tsx"
+    ],
+    "tileset.lastUsedFormat": "tsx",
+    "tileset.tileSize": {
+        "height": 16,
+        "width": 16
+    }
+}
