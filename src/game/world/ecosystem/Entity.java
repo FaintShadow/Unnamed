@@ -1,7 +1,7 @@
-package game.entities;
+package game.world.ecosystem;
 
 import com.raylib.Jaylib;
-import game.assets.Tile;
+import game.world.ecosystem.objects.Tile;
 import game.utilities.Controls;
 
 import java.util.List;
@@ -10,13 +10,14 @@ import java.util.Map;
 import static com.raylib.Raylib.IsKeyDown;
 import static game.Unnamed.CHUNKSIZE;
 import static game.Unnamed.TILESCALEDSIZE;
+import static game.world.World.TILESCALEDSIZE;
 
 public class Entity extends Controls {
-    public Jaylib.Vector2 position;
-    public float speed;
+    private Jaylib.Vector2 posiion;
+    private float speed;
 
     public Entity(Jaylib.Vector2 position, float speed) {
-        this.position = position;
+        this.posiion = position;
         this.speed = speed;
     }
 
@@ -27,16 +28,16 @@ public class Entity extends Controls {
         int cuspd = 100;
 
         if (IsKeyDown(keys.get("left"))) {
-            position.x(position.x() - (cspd * delta));
+            posiion.x(posiion.x() - (cspd * delta));
         }
         if (IsKeyDown(keys.get("right"))) {
-            position.x(position.x() + (cspd * delta));
+            posiion.x(posiion.x() + (cspd * delta));
         }
         if (IsKeyDown(keys.get("up"))) {
-            position.y(position.y() - (cuspd * delta));
+            posiion.y(posiion.y() - (cuspd * delta));
         }
         if (IsKeyDown(keys.get("down"))){
-            position.y(position.y() + (cuspd * delta));
+            posiion.y(posiion.y() + (cuspd * delta));
         }
     }
 
@@ -45,26 +46,42 @@ public class Entity extends Controls {
         int yCD = 0;
         int targetX = 0;
         int targetY = 0;
-        if (position.x() < 0) {
-            targetX = (int) ((position.x() - (CHUNKSIZE * TILESCALEDSIZE)) / (CHUNKSIZE * TILESCALEDSIZE));
-            targetY = (int) (position.y() / (CHUNKSIZE * TILESCALEDSIZE));
+        if (posiion.x() < 0) {
+            targetX = (int) ((posiion.x() - (CHUNKSIZE * TILESCALEDSIZE)) / (CHUNKSIZE * TILESCALEDSIZE));
+            targetY = (int) (posiion.y() / (CHUNKSIZE * TILESCALEDSIZE));
         } else {
-            targetX = (int) (position.x() / (CHUNKSIZE * TILESCALEDSIZE));
-            targetY = (int) (position.y() / (CHUNKSIZE * TILESCALEDSIZE));
+            targetX = (int) (posiion.x() / (CHUNKSIZE * TILESCALEDSIZE));
+            targetY = (int) (posiion.y() / (CHUNKSIZE * TILESCALEDSIZE));
         }
 
         xCD = targetX * (CHUNKSIZE * TILESCALEDSIZE);
         yCD = targetY * (CHUNKSIZE * TILESCALEDSIZE);
-        String chunkIndex = xCD + ";" + yCD;
+        String chunkIndex = xCD + ":" + yCD;
 
         return map.get(chunkIndex);
+    }
+
+    public Jaylib.Vector2 getPosition() {
+        return posiion;
+    }
+
+    public void setPosition(Jaylib.Vector2 position) {
+        this.posiion = position;
+    }
+
+    public float getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(float speed) {
+        this.speed = speed;
     }
 
     @Override
     public String toString() {
         return "Entities.Entity{" +
-                "X=" + position.x() +
-                ", Y=" + position.y() +
+                "X=" + posiion.x() +
+                ", Y=" + posiion.y() +
                 ", Speed=" + speed +
                 ", Controls=" + keys +
                 "}";

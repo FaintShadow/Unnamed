@@ -12,8 +12,6 @@ public abstract class Controls {
 
     @Override
     public String toString() {
-        return "Game.utilities.Controls{" +
-                "Game.utilities.Controls=" + keys +
-                '}';
+        return "Game.utilities.Controls{" + keys + '}';
     }
 }

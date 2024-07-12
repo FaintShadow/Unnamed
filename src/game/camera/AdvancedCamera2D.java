@@ -1,7 +1,7 @@
 package game.camera;
 
-import game.assets.Tile;
-import game.entities.Entity;
+import game.world.ecosystem.objects.Tile;
+import game.world.ecosystem.Entity;
 import com.raylib.Jaylib;
 import com.raylib.Raylib;
 
@@ -11,7 +11,7 @@ import java.util.Map;
 
 import static com.raylib.Raylib.IsKeyDown;
 
-public class AdvancedCamera2D extends Raylib.Camera2D{
+public class AdvancedCamera2D extends Raylib.Camera2D {
     private Map<String, Integer> keys = new HashMap<>();
 
     private Jaylib.Vector2 targetV = new Jaylib.Vector2();
@@ -50,7 +50,7 @@ public class AdvancedCamera2D extends Raylib.Camera2D{
                 ++i;
             }
         }
-        if (i == 0){
+        if (i == 0) {
             totX = el.get(0).position.x();
             totY = el.get(0).position.y();
             i++;
@@ -130,10 +130,10 @@ public class AdvancedCamera2D extends Raylib.Camera2D{
         float maxY = 0.0F;
 
         for (Tile tile : tiles) {
-            minX = Math.min(tile.rectangle.x(), minX);
-            maxX = Math.max(tile.rectangle.x(), maxX);
-            minY = Math.min(tile.rectangle.y(), minY);
-            maxY = Math.max(tile.rectangle.y(), maxY);
+            minX = Math.min(tile.getPosition().x(), minX);
+            maxX = Math.max(tile.getPosition().x(), maxX);
+            minY = Math.min(tile.getPosition().y(), minY);
+            maxY = Math.max(tile.getPosition().y(), maxY);
         }
 
         Raylib.Vector2 wmax = Raylib.GetWorldToScreen2D(new Jaylib.Vector2(maxX, maxY), camera);
@@ -156,7 +156,7 @@ public class AdvancedCamera2D extends Raylib.Camera2D{
 
     }
 
-    public void cameraController(float delta){
+    public void cameraController(float delta) {
         int cspd = 300;
         int cuspd = 300;
 
@@ -169,26 +169,28 @@ public class AdvancedCamera2D extends Raylib.Camera2D{
         if (IsKeyDown(keys.get("up"))) {
             targetV.y(targetV.y() - (cuspd * delta));
         }
-        if (IsKeyDown(keys.get("down"))){
+        if (IsKeyDown(keys.get("down"))) {
             targetV.y(targetV.y() + (cuspd * delta));
         }
     }
 
-    public void getCorner(int id, Raylib.Vector2 vector){
+    /**
+     * Get the XY of the screen's corners
+     * @param corner
+     * Top Left Corner: 1 <p>
+     * Top Right Corner: 2 <p>
+     * Bottom Left Corner: 3 <p>
+     * Bottom Right Corner: 4
+     * @param vector The Vector in which the XY position of the corner will be set.
+     */
+    public void getCorner(int corner, Raylib.Vector2 vector) {
 
-        //
-        //  Top Left Corner : 1
-        //  Top Right Corner : 2
-        //  Bottom Left Corner : 3
-        //  Bottom Right Corner : 4
-        //
-        //  Get XY Screen Corners Based On Zoom level:
         //  X = (Game.camera.target.x -/+ ( Game.camera.offset.x / 3 ))
         //  Y = (Game.camera.target.x -/+ ( Game.camera.offset.y / 3 ))
         //
         // ((target().x() - (offset().x() / zoom())), (target().y() - (offset().y() / zoom())))
 
-        switch (id){
+        switch (corner) {
             case 1:
                 vector.x(target().x() - (offset().x() / zoom()));
                 vector.y(target().y() - (offset().y() / zoom()));

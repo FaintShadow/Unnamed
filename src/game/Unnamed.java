@@ -6,46 +6,36 @@ import java.util.List;
 import java.util.Map;
 
 // Types:
-import game.assets.Tile;
-import game.entities.Entity;
-import game.entities.Player;
+import game.world.ecosystem.objects.Tile;
+import game.world.ecosystem.Entity;
+import game.world.ecosystem.Player;
 import game.camera.AdvancedCamera2D;
-import game.utilities.World;
+import game.world.World;
 import com.raylib.Jaylib;
 import com.raylib.Jaylib.Rectangle;
 import com.raylib.Raylib.Texture;
 
 // Libs:
 import static com.raylib.Jaylib.*;
-import static java.lang.Math.exp;
-import static java.lang.Math.sin;
+import static game.utilities.Variables.*;
+import static game.world.World.*;
 
 public class Unnamed {
-    public static final int WORLDSCALE = 1;
-    public static final int CHUNKSIZE = 8;
-    public static final int DEBUGFONTSIZE = 16;
-    public static final String RESET = "Reset";
-    public static final String PAUSE = "Pause";
-    public static final String RIGHT = "Right";
-    public static final String LEFT = "LEFT";
-    public static final int GAMEWIDTH = 800 * 2;
-    public static final int GAMEHEIGHT = 450 * 2;
-    public static final int TILESIZE = (int) Math.pow(2, 5);
-    public static final int TILESCALEDSIZE = TILESIZE * WORLDSCALE;
-    public static final int GRAVITY = 400;
+
     private static boolean debug = false;
-    private static List<Player> pL = new ArrayList<>(4);
-    private static Texture textureSprite = LoadTexture("/src/game/assets/tiles.png");
+
+    private static List<Player> playerList = new ArrayList<>(4);
+    private static final Texture textureSprite = LoadTexture("/src/game/assets/tiles.png");
 
     public static void initPlayers() {
         Tile tile = World.genChunk((int) (Math.random()*1000), (int) (Math.random()*100), textureSprite).getFirst();
         // - PL1:
-        pL.add(new Player(new Jaylib.Vector2(tile.position.x() + (TILESCALEDSIZE%2), tile.position.y() - TILESCALEDSIZE), 0, WHITE, TILESIZE, WORLDSCALE));
-        Player player = pL.get(0);
+        playerList.add(new Player(new Jaylib.Vector2(tile.getPosition().x() + (TILESCALEDSIZE%2), tile.getPosition().y() - TILESCALEDSIZE), 0, WHITE, TILESIZE, WORLDSCALE));
+        Player player = playerList.get(0);
         player.setRectangle(new Rectangle((player.position.x() - ((float) TILESIZE / 2)) * 2, (player.position.y() - ((float) TILESIZE / 2)) * 2, WORLDSCALE * (float) TILESIZE, WORLDSCALE * (float) TILESIZE));
-        player.addControls("Left", KEY_A);
+        player.addControls(LEFT, KEY_A);
         player.addControls(RIGHT, KEY_D);
-        player.addControls("Jump", KEY_W);
+        player.addControls(JUMP, KEY_W);
         player.addControls(PAUSE, KEY_X);
         player.addControls(RESET, KEY_R);
         // - PL2:
@@ -76,7 +66,7 @@ public class Unnamed {
         camera.addControls("zoom_in", KEY_KP_ADD);
         camera.addControls("zoom_out", KEY_KP_SUBTRACT);
 
-        camera.setTargetVector(new Jaylib.Vector2(pL.getFirst().position.x(), pL.getFirst().position.y()));
+        camera.setTargetVector(new Jaylib.Vector2(playerList.getFirst().position.x(), playerList.getFirst().position.y()));
         camera.target(camera.getTargetVector());
         camera.offset(new Jaylib.Vector2((float) GAMEWIDTH / 2, (float) GAMEHEIGHT / 2));
         camera.rotation(0);
@@ -84,10 +74,10 @@ public class Unnamed {
     }
 
     public static void updatePlayers(List<Player> playerList, Map<String, List<Tile>> map, float deltaTime) {
-        for (Player player : playerList) {
-            Player.updateCollision(player, player.getEntityCurrentChunk(map), TILESIZE, WORLDSCALE, GRAVITY, deltaTime);
-            player.Update_Vector(TILESIZE, WORLDSCALE);
-        }
+        playerList.forEach(player -> {
+            player.updateCollision(player.getEntityCurrentChunk(map), TILESIZE, WORLDSCALE, GRAVITY, deltaTime);
+            player.updateVector(TILESIZE, WORLDSCALE);
+        });
     }
 
     public static void main(String[] args) {
@@ -108,7 +98,7 @@ public class Unnamed {
         while (!WindowShouldClose()) {
             float deltaTime = GetFrameTime();
 
-            camera.cTV(pL);
+            camera.cTV(playerList);
             AdvancedCamera2D.mUCCSF(camera, GAMEWIDTH, GAMEHEIGHT, deltaTime);
             //camera.cameraController(deltaTime);
 
@@ -124,7 +114,7 @@ public class Unnamed {
                 camera.zoom(0.25f);
             }
 
-            for (Entity entity : pL) {
+            for (Entity entity : playerList) {
                 if (IsKeyPressed(entity.keys.get(RESET))) {
                     entity.position.x(400);
                     entity.position.y(280);
@@ -139,16 +129,15 @@ public class Unnamed {
             World.renderChunks(camera, cameraAncher, map, underGround, groundGrass);
 
             // Entities.Player:
-            for (Player player :
-                    pL) {
-                player.rect.x(player.position.x() - (((float) TILESIZE / 2) * WORLDSCALE));
+            playerList.forEach(player -> {
+                player.get.x(player.position.x() - (((float) TILESIZE / 2) * WORLDSCALE));
                 player.rect.y(player.position.y() - (((float) TILESIZE / 2) * WORLDSCALE));
                 DrawRectangleRec(player.rect, player.color);
-            }
+            });
 
             EndMode2D();
             DrawText(String.valueOf(GetFPS()), 0, 0, DEBUGFONTSIZE + 20, BLACK);
-            updatePlayers(pL, map, deltaTime);
+            updatePlayers(playerList, map, deltaTime);
             EndDrawing();
         }
         CloseWindow();

@@ -1,16 +1,19 @@
-package game.assets;
+package game.world.ecosystem.objects;
 
 import com.raylib.Jaylib;
 import com.raylib.Raylib;
+import game.utilities.Identifier;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import static game.utilities.Variables.*;
+
 public class Tile {
+    private Identifier<Integer, Integer> identifier;
     private Jaylib.Vector2 position;
     private Raylib.Color color;
     private Map<String, Boolean> collision = new HashMap<>();
-    private Id id;
 
     public Jaylib.Vector2 getPosition() {
         return position;
@@ -32,33 +35,25 @@ public class Tile {
         this.collision = collision;
     }
 
-    public Id getId() {
-        return id;
+    public Identifier<Integer, Integer> getId() {
+        return identifier;
     }
 
-    public void setId(Id id) {
-        this.id = id;
+    public void setId(Identifier<Integer, Integer> identifier) {
+        this.identifier = identifier;
     }
 
     public Map<String, Boolean> getCollision(){
         return this.collision;
     }
 
-    public Tile(Jaylib.Vector2 position, boolean top, boolean sides, boolean bottom, Raylib.Color color) {
-        this.position = position;
-        this.color = color;
-        this.collision.put("top", top);
-        this.collision.put("right", sides);
-        this.collision.put("left", sides);
-        this.collision.put("bottom", bottom);
-    }
-
     public Tile(Jaylib.Vector2 position, Raylib.Color color, Boolean collision) {
         this.position = position;
         this.color = color;
-        this.collision.put("top", collision);
-        this.collision.put("right", collision);
-        this.collision.put("left", collision);
-        this.collision.put("bottom", collision);
+
+        this.collision.put(TOP, collision);
+        this.collision.put(RIGHT, collision);
+        this.collision.put(LEFT, collision);
+        this.collision.put(BOTTOM, collision);
     }
 }
