@@ -3,12 +3,12 @@ package game.utilities;
 import game.utilities.errors.InvalidIdentifierFormat;
 
 /**
- * A class used to make an Identifier that has 2 parts
- * 'main' which is the first one and 'sub' which is the second one.
- * Example of an "Identified<Integer, Integer>(1,0,':')" will make
- * the following "1:0" where 1 is the main part, 0 is the sub part
- * and ':' a separator between them.
+ * The Identifier class creates a compound identifier consisting of two parts: 'Parent' and 'Child'.
+ * These parts are separated by a specified separator. For instance, an "Identifier<Integer, Integer>(1,0,':')"
+ * will yield the string "1:0", where "1" is the 'Parent', "0" is the 'Child', and ":" is the separator.
  * @author FaintShadow
+ * @param <T> The type of the Parent
+ * @param <R> The type of the Child
  */
 public class Identifier<T, R> {
     private T parent;
@@ -38,6 +38,11 @@ public class Identifier<T, R> {
     public Identifier(T parent, R child, String separator) throws InvalidIdentifierFormat {
         new Identifier<T, R>(parent, child);
         this.separator = separator;
+    }
+
+    public void set(T parent, R child) throws InvalidIdentifierFormat {
+        this.parent = parent;
+        this.child = child;
     }
 
     public T getParent() {

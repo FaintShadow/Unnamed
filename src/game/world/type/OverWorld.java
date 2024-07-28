@@ -3,24 +3,21 @@ package game.world.type;
 import com.raylib.Jaylib;
 import game.noise.Perlin1D;
 import game.texture.Manager;
-import game.world.World;
+import game.utilities.Identifier;
+import game.utilities.errors.InvalidIdentifierFormat;
 import game.world.ecosystem.objects.Tile;
 
-import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.raylib.Jaylib.PINK;
-import static com.raylib.Jaylib.RED;
 import static game.utilities.Variables.CHUNKSIZE;
 
-public class Overworld extends World {
+public class OverWorld extends BaseWorld {
     private static final Perlin1D noise = new Perlin1D(0.5, 8);
 
-    public Overworld() { /* TODO document why this constructor is empty */ }
-
-    public static List<Tile> genChunk(int x, int y) {
+    public static List<Tile> genChunk(int x, int y) throws InvalidIdentifierFormat {
         ArrayList<Tile> chunkTiles = new ArrayList<>();
+        Identifier<Integer, Integer> tempId = new Identifier<>(0, 0);
 
         for (int yp = 0; yp < CHUNKSIZE; yp++) {
             for (int xp = 0; xp < CHUNKSIZE; xp++) {
@@ -28,15 +25,23 @@ public class Overworld extends World {
                 float targetX = x + ((float) xp * TILESCALEDSIZE);
                 float targetY = y + ((float) yp * TILESCALEDSIZE);
 
-                Jaylib.Rectangle rec = new Jaylib.Rectangle(targetX, targetY, TILESCALEDSIZE, TILESCALEDSIZE);
-                Tile tile = null;
+                // Jaylib.Rectangle rec = new Jaylib.Rectangle(targetX, targetY, TILESCALEDSIZE, TILESCALEDSIZE);
+                Tile tile = new Tile();
+                tile.setPosition(new Jaylib.Vector2(targetX, targetY));
                 double height = noise.perlinNoise1D(targetX) * 100;
                 if (targetY > height) {
-                    tile = new Tile(rec, false, false, false, RED, Manager.getTexture(0, 0));
+                    tempId.setParent(1);
+                    tempId.setChild(4);
+                    tile.setId(tempId);
+                    tile.setCollision(true);
                 } else if (targetY + TILESCALEDSIZE > height) {
-                    tile = new Tile(rec, true, false, false, PINK, Manager.getTexture(1,0));
+                    tempId.setParent(8);
+                    tempId.setChild(4);
+
+                    tile.setId(tempId);
+                    tile.setCollision(true);
                 }
-                if (tile != null) {
+                if (tile.getId() != null) {
                     chunkTiles.add(tile);
                 }
             }

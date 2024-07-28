@@ -1,4 +1,4 @@
-package game.world.ecosystem;
+package game.world.ecosystem.organisms;
 
 import game.world.ecosystem.objects.Tile;
 import com.raylib.Jaylib;
@@ -11,7 +11,7 @@ import java.util.Map;
 import static com.raylib.Raylib.IsKeyDown;
 import static com.raylib.Raylib.IsKeyPressed;
 import static com.raylib.Raylib.Vector2Distance;
-import static game.world.World.*;
+import static game.world.type.BaseWorld.*;
 
 public class Player extends Entity {
     private static int spd;
@@ -19,7 +19,6 @@ public class Player extends Entity {
 
     private final Map<String, Boolean> state = new HashMap<>();
     private Jaylib.Rectangle rect;
-    private Raylib.Color color;
     private final Jaylib.Rectangle brc = new Jaylib.Rectangle();
     private final Jaylib.Rectangle trc = new Jaylib.Rectangle();
     private final Raylib.Rectangle blc = new Raylib.Rectangle();
@@ -30,9 +29,7 @@ public class Player extends Entity {
     private static final String GROUNDED = "grounded";
     private static final String IDLING = "idling";
 
-
-
-    public Player(Jaylib.Vector2 position, float speed, Raylib.Color color, int tileSize, int worldScale) {
+    public Player(Jaylib.Vector2 position, float speed, int tileSize, int worldScale) {
         super(position, speed);
 
         this.state.put(FALLING, true);
@@ -52,7 +49,6 @@ public class Player extends Entity {
         this.tlc.height(2);
         this.tlc.width(2);
 
-        this.color = color;
         this.updateVector(tileSize, worldScale);
     }
 
@@ -80,14 +76,14 @@ public class Player extends Entity {
 
     @Override
     public void updatePosition(float delta){
-        if (IsKeyDown(keys.get("Left"))) {
+        if (IsKeyDown(getControls().get("Left"))) {
             getPosition().x(getPosition().x() - (spd * delta));
         }
-        if (IsKeyDown(keys.get("Right"))) {
+        if (IsKeyDown(getControls().get("Right"))) {
             getPosition().x(getPosition().x() + (spd * delta));
         }
-        if (IsKeyPressed(keys.get("Jump")) && Boolean.TRUE.equals(state.get(GROUNDED))) {
-            super.getSpeed() = -jspd;
+        if (IsKeyPressed(getControls().get("Jump")) && Boolean.TRUE.equals(state.get(GROUNDED))) {
+            super.setSpeed(-jspd);
             state.put(JUMPING, true);
             state.put(GROUNDED, false);
         }
@@ -106,7 +102,7 @@ public class Player extends Entity {
                         getPosition().y() < tile.getPosition().y() &&
                         getPosition().y() >= tile.getPosition().y() - ((float) TILESIZE / 2 * WORLDSCALE)
         ) {
-            if (!IsKeyPressed(keys.get("Jump")) || Boolean.TRUE.equals(state.get(FALLING))) {
+            if (!IsKeyPressed(getControls().get("Jump")) || Boolean.TRUE.equals(state.get(FALLING))) {
                 setSpeed(0);
                 getPosition().y(tile.getPosition().y() - ((float) TILESIZE / 2 * WORLDSCALE));
                 state.put(GROUNDED, true);
@@ -163,13 +159,13 @@ public class Player extends Entity {
         state.put("falling", falling);
 
         if (state.get("jumping") || state.get("falling")) {
-            getPosition().y(getPosition().y() + speed * delta);
-            if (speed > 0) {
+            getPosition().y(getPosition().y() + getSpeed() * delta);
+            if (getSpeed() > 0) {
                 state.put("falling", true);
                 state.put("jumping", false);
-                speed += (gravity * 2) * delta * worldScale;
+                setSpeed(getSpeed() + (gravity * 2) * delta * worldScale );
             } else {
-                speed += gravity * delta * worldScale;
+                setSpeed(getSpeed() + gravity * delta * worldScale);
             }
         }
     }
@@ -298,5 +294,9 @@ public class Player extends Entity {
 
     public void setRectangle(Jaylib.Rectangle rect) {
         this.rect = rect;
+    }
+
+    public Jaylib.Rectangle getRect() {
+        return rect;
     }
 }

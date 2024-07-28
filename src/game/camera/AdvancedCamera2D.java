@@ -1,7 +1,9 @@
 package game.camera;
 
+import game.utilities.Position;
+import game.utilities.interfaces.Controllable;
 import game.world.ecosystem.objects.Tile;
-import game.world.ecosystem.Entity;
+import game.world.ecosystem.organisms.Entity;
 import com.raylib.Jaylib;
 import com.raylib.Raylib;
 
@@ -11,67 +13,53 @@ import java.util.Map;
 
 import static com.raylib.Raylib.IsKeyDown;
 
-public class AdvancedCamera2D extends Raylib.Camera2D {
-    private Map<String, Integer> keys = new HashMap<>();
+public class AdvancedCamera2D extends Raylib.Camera2D implements Controllable {
+    private Map<String, Integer> controls = new HashMap<>();
+    private Position target = new Position();
 
-    private Jaylib.Vector2 targetV = new Jaylib.Vector2();
-
-    public Map<String, Integer> getKeys() {
-        return keys;
+    public Map<String, Integer> getControls() {
+        return controls;
     }
 
-    public Jaylib.Vector2 getTargetV() {
-        return targetV;
+    public Position getTarget() {
+        return target;
     }
 
-    public void addControls(String name, int key) {
-        this.keys.put(name, key);
-    }
-
-    public void setTargetVector(Jaylib.Vector2 v) {
-        this.targetV = v;
-    }
-
-    public Jaylib.Vector2 getTargetVector() {
-        return this.targetV;
+    public void setTarget(Position pos) {
+        this.target = pos;
     }
 
     // Camera Target Vector:
     public void cTV(List<? extends Entity> el) {
         float totX = 0.0F;
         float totY = 0.0F;
-        float ignoredistance = 400.0F;
+        float ignoreDistance = 400.0F;
         int i = 0;
 
         for (Entity E : el) {
-            if (Raylib.Vector2Distance(E.position, this.targetV) < ignoredistance) {
-                totX += E.position.x();
-                totY += E.position.y();
+            if (Raylib.Vector2Distance(E.getPosition().getVector2(), this.target.getVector2()) < ignoreDistance) {
+                totX += E.getPosition().x();
+                totY += E.getPosition().y();
                 ++i;
             }
-        }
-        if (i == 0) {
-            totX = el.get(0).position.x();
-            totY = el.get(0).position.y();
-            i++;
         }
 
         float avgX = totX / i;
         float avgY = totY / i;
-        this.targetV.x(avgX);
-        this.targetV.y(avgY);
+        this.target.x(avgX);
+        this.target.y(avgY);
     }
 
     // Single U? Camera Center:
     public void sUCC(int width, int height, Entity entity) {
         super.offset(new Jaylib.Vector2(width / 2.0F, height / 2.0F));
-        super.target(entity.position);
+        super.target(entity.getPosition().getVector2());
     }
 
     // Single U? Camera Center:
     public void mUCC(int width, int height) {
         super.offset(new Jaylib.Vector2(width / 2.0F, height / 2.0F));
-        super.target(targetV);
+        super.target(target.getVector2());
     }
 
     // Single U? Camera Center Smooth Follow
@@ -79,8 +67,10 @@ public class AdvancedCamera2D extends Raylib.Camera2D {
         float minSPD = 30.0F;
         float minEffLength = 10.0F;
         float fractionSPD = 0.8F;
-        camera.offset(new Jaylib.Vector2((width / 2), (height / 2)));
-        Raylib.Vector2 difference = Raylib.Vector2Subtract(entity.position, camera.target());
+        //camera.offset(new Jaylib.Vector2((width / 2), (height / 2)));
+        camera.offset().x(Math.floorMod(width, 2));
+        camera.offset().y(Math.floorMod(height, 2));
+        Raylib.Vector2 difference = Raylib.Vector2Subtract(entity.getPosition().getVector2(), camera.target());
         float length = Raylib.Vector2Length(difference);
         if (length > minEffLength) {
             float speed = Math.max(fractionSPD * length, minSPD);
@@ -95,9 +85,9 @@ public class AdvancedCamera2D extends Raylib.Camera2D {
         float minEffLength = 10.0F;
         float fractionSPD = 0.8F;
 
-        camera.offset().x((width / 2));
-        camera.offset().y((height / 2));
-        Raylib.Vector2 difference = Raylib.Vector2Subtract(camera.targetV, camera.target());
+        camera.offset().x(width / 2);
+        camera.offset().y(height / 2);
+        Raylib.Vector2 difference = Raylib.Vector2Subtract(camera.target.getVector2(), camera.target());
 
         float length = Raylib.Vector2Length(difference);
         if (length > minEffLength) {
@@ -107,7 +97,7 @@ public class AdvancedCamera2D extends Raylib.Camera2D {
 
     }
 
-    // Multi Camera Center
+    // Multi ? Camera Center
     public static void mUCCIM(AdvancedCamera2D camera, List<Tile> tiles, int width, int height, float delta) {
         float minSPD = 30.0F;
         float minEffLength = 10.0F;
@@ -115,7 +105,7 @@ public class AdvancedCamera2D extends Raylib.Camera2D {
 
         camera.offset().x((width / 2));
         camera.offset().y((height / 2));
-        Raylib.Vector2 difference = Raylib.Vector2Subtract(camera.targetV, camera.target());
+        Raylib.Vector2 difference = Raylib.Vector2Subtract(camera.target.getVector2(), camera.target());
 
         float length = Raylib.Vector2Length(difference);
         float minX;
@@ -160,28 +150,47 @@ public class AdvancedCamera2D extends Raylib.Camera2D {
         int cspd = 300;
         int cuspd = 300;
 
-        if (IsKeyDown(keys.get("left"))) {
-            targetV.x(targetV.x() - (cspd * delta));
+        if (IsKeyDown(controls.get("left"))) {
+            target.x(target.x() - (cspd * delta));
         }
-        if (IsKeyDown(keys.get("right"))) {
-            targetV.x(targetV.x() + (cspd * delta));
+        if (IsKeyDown(controls.get("right"))) {
+            target.x(target.x() + (cspd * delta));
         }
-        if (IsKeyDown(keys.get("up"))) {
-            targetV.y(targetV.y() - (cuspd * delta));
+        if (IsKeyDown(controls.get("up"))) {
+            target.y(target.y() - (cuspd * delta));
         }
-        if (IsKeyDown(keys.get("down"))) {
-            targetV.y(targetV.y() + (cuspd * delta));
+        if (IsKeyDown(controls.get("down"))) {
+            target.y(target.y() + (cuspd * delta));
         }
     }
 
     /**
      * Get the XY of the screen's corners
-     * @param corner
-     * Top Left Corner: 1 <p>
-     * Top Right Corner: 2 <p>
-     * Bottom Left Corner: 3 <p>
-     * Bottom Right Corner: 4
-     * @param vector The Vector in which the XY position of the corner will be set.
+     * <table>
+     *     <tr>
+     *         <th>Corner</th>
+     *         <th>Id</th>
+     *     </tr>
+     *     <tr>
+     *         <td>Top left</td>
+     *         <td>1</td>
+     *     </tr>
+     *     <tr>
+     *         <td>Top right</td>
+     *         <td>2</td>
+     *     </tr>
+     *     <tr>
+     *         <td>Bottom left</td>
+     *         <td>3</td>
+     *     </tr>
+     *     <tr>
+     *         <td>Bottom right</td>
+     *         <td>4</td>
+     *     </tr>
+     * </table>
+     *
+     * @param corner The id of the screen corner you want.
+     * @param vector The vector in which the XY position of the corner will be set.
      */
     public void getCorner(int corner, Raylib.Vector2 vector) {
 
@@ -192,20 +201,20 @@ public class AdvancedCamera2D extends Raylib.Camera2D {
 
         switch (corner) {
             case 1:
-                vector.x(target().x() - (offset().x() / zoom()));
-                vector.y(target().y() - (offset().y() / zoom()));
+                vector.x(this.target().x() - (this.offset().x() / zoom()));
+                vector.y(this.target().y() - (this.offset().y() / zoom()));
                 break;
             case 2:
-                vector.x(target().x() + (offset().x() / zoom()));
-                vector.y(target().y() - (offset().y() / zoom()));
+                vector.x(this.target().x() + (this.offset().x() / zoom()));
+                vector.y(this.target().y() - (this.offset().y() / zoom()));
                 break;
             case 3:
-                vector.x(target().x() - (offset().x() / zoom()));
-                vector.y(target().y() + (offset().y() / zoom()));
+                vector.x(this.target().x() - (this.offset().x() / zoom()));
+                vector.y(this.target().y() + (this.offset().y() / zoom()));
                 break;
             case 4:
-                vector.x(target().x() + (offset().x() / zoom()));
-                vector.y(target().y() + (offset().y() / zoom()));
+                vector.x(this.target().x() + (this.offset().x() / zoom()));
+                vector.y(this.target().y() + (this.offset().y() / zoom()));
                 break;
             default:
                 break;

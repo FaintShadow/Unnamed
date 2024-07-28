@@ -15,6 +15,18 @@ public class Tile {
     private Raylib.Color color;
     private Map<String, Boolean> collision = new HashMap<>();
 
+    public Tile(){}
+
+    public Tile(Identifier<Integer, Integer> id, Jaylib.Vector2 position, Boolean collision) {
+        this.identifier = id;
+        this.position = position;
+        this.collision.put(W_TOP, collision);
+        this.collision.put(W_RIGHT, collision);
+        this.collision.put(W_LEFT, collision);
+        this.collision.put(W_BOTTOM, collision);
+    }
+
+    // Getters & Setters:
     public Jaylib.Vector2 getPosition() {
         return position;
     }
@@ -35,6 +47,17 @@ public class Tile {
         this.collision = collision;
     }
 
+    public void setCollision(boolean collision) {
+        this.collision.put(W_TOP, collision);
+        this.collision.put(W_RIGHT, collision);
+        this.collision.put(W_LEFT, collision);
+        this.collision.put(W_BOTTOM, collision);
+    }
+
+    public Map<String, Boolean> getCollision(){
+        return this.collision;
+    }
+
     public Identifier<Integer, Integer> getId() {
         return identifier;
     }
@@ -42,18 +65,5 @@ public class Tile {
     public void setId(Identifier<Integer, Integer> identifier) {
         this.identifier = identifier;
     }
-
-    public Map<String, Boolean> getCollision(){
-        return this.collision;
-    }
-
-    public Tile(Jaylib.Vector2 position, Raylib.Color color, Boolean collision) {
-        this.position = position;
-        this.color = color;
-
-        this.collision.put(TOP, collision);
-        this.collision.put(RIGHT, collision);
-        this.collision.put(LEFT, collision);
-        this.collision.put(BOTTOM, collision);
-    }
+    // ----------------------------------------------------------------------
 }
