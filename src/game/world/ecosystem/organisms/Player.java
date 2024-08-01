@@ -1,5 +1,6 @@
 package game.world.ecosystem.organisms;
 
+import game.utilities.Position;
 import game.world.ecosystem.objects.Tile;
 import com.raylib.Jaylib;
 import com.raylib.Raylib;
@@ -11,6 +12,7 @@ import java.util.Map;
 import static com.raylib.Raylib.IsKeyDown;
 import static com.raylib.Raylib.IsKeyPressed;
 import static com.raylib.Raylib.Vector2Distance;
+import static game.utilities.Variables.*;
 import static game.world.type.BaseWorld.*;
 
 public class Player extends Entity {
@@ -19,59 +21,14 @@ public class Player extends Entity {
 
     private final Map<String, Boolean> state = new HashMap<>();
     private Jaylib.Rectangle rect;
-    private final Jaylib.Rectangle brc = new Jaylib.Rectangle();
-    private final Jaylib.Rectangle trc = new Jaylib.Rectangle();
-    private final Raylib.Rectangle blc = new Raylib.Rectangle();
-    private final Jaylib.Rectangle tlc = new Jaylib.Rectangle();
 
-    private static final String FALLING = "falling";
-    private static final String JUMPING = "jumping";
-    private static final String GROUNDED = "grounded";
-    private static final String IDLING = "idling";
-
-    public Player(Jaylib.Vector2 position, float speed, int tileSize, int worldScale) {
+    public Player(Position position, float speed, int tileSize, int worldScale) {
         super(position, speed);
 
-        this.state.put(FALLING, true);
-        this.state.put(JUMPING, false);
-        this.state.put(GROUNDED, false);
-        this.state.put(IDLING, false);
-
-        this.blc.height(2);
-        this.blc.width(2);
-
-        this.brc.height(2);
-        this.brc.width(2);
-
-        this.trc.height(2);
-        this.trc.width(2);
-
-        this.tlc.height(2);
-        this.tlc.width(2);
-
-        this.updateVector(tileSize, worldScale);
-    }
-
-    public void updateVector(int tileSize, int worldScale) {
-        float offset = ((float) tileSize / 2) * worldScale;
-        this.brc.x(getPosition().x() + offset);
-        this.brc.y(getPosition().y() + offset);
-
-        this.trc.x(getPosition().x() + offset);
-        this.trc.y(getPosition().y() - offset);
-
-        this.blc.x(getPosition().x() - offset);
-        this.blc.y(getPosition().y() + offset);
-
-        this.tlc.x(getPosition().x() - offset);
-        this.tlc.y(getPosition().y() - offset);
-    }
-
-    public void drawVectors() {
-        Raylib.DrawRectangleRec(brc, Jaylib.RED);
-        Raylib.DrawRectangleRec(blc, Jaylib.GREEN);
-        Raylib.DrawRectangleRec(tlc, Jaylib.BLACK);
-        Raylib.DrawRectangleRec(trc, Jaylib.YELLOW);
+        this.state.put(W_FALLING, true);
+        this.state.put(W_JUMPING, false);
+        this.state.put(W_GROUNDED, false);
+        this.state.put(W_IDLING, false);
     }
 
     @Override
@@ -82,10 +39,10 @@ public class Player extends Entity {
         if (IsKeyDown(getControls().get("Right"))) {
             getPosition().x(getPosition().x() + (spd * delta));
         }
-        if (IsKeyPressed(getControls().get("Jump")) && Boolean.TRUE.equals(state.get(GROUNDED))) {
+        if (IsKeyPressed(getControls().get("Jump")) && Boolean.TRUE.equals(state.get(W_GROUNDED))) {
             super.setSpeed(-jspd);
-            state.put(JUMPING, true);
-            state.put(GROUNDED, false);
+            state.put(W_JUMPING, true);
+            state.put(W_GROUNDED, false);
         }
     }
 
@@ -102,25 +59,25 @@ public class Player extends Entity {
                         getPosition().y() < tile.getPosition().y() &&
                         getPosition().y() >= tile.getPosition().y() - ((float) TILESIZE / 2 * WORLDSCALE)
         ) {
-            if (!IsKeyPressed(getControls().get("Jump")) || Boolean.TRUE.equals(state.get(FALLING))) {
+            if (!IsKeyPressed(getControls().get("Jump")) || Boolean.TRUE.equals(state.get(W_FALLING))) {
                 setSpeed(0);
                 getPosition().y(tile.getPosition().y() - ((float) TILESIZE / 2 * WORLDSCALE));
-                state.put(GROUNDED, true);
-                state.put(FALLING, false);
-                state.put(JUMPING, false);
+                state.put(W_GROUNDED, true);
+                state.put(W_FALLING, false);
+                state.put(W_JUMPING, false);
             }
-            setState(FALLING, false);
+            setState(W_FALLING, false);
         }
     }
 
     public void updateCollision(List<Tile> chunk, int tileSize, int worldScale, int gravity, float delta) {
         updatePosition(delta);
 
-        boolean falling = !state.get(JUMPING);
+        boolean falling = !state.get(W_JUMPING);
 
         if (chunk != null) {
             for (Tile tile : chunk) {
-                if (Vector2Distance(tile.getPosition(), getPosition()) <= (tileSize * 1.5) * worldScale) {
+                if (Vector2Distance(tile.getPosition().getVector2(), getPosition().getVector2()) <= (tileSize * 1.5) * worldScale) {
 
                     // Check side collisions
                     if (
@@ -154,9 +111,9 @@ public class Player extends Entity {
         }
 
         if (falling) {
-            state.put(GROUNDED, false);
+            state.put(W_GROUNDED, false);
         }
-        state.put("falling", falling);
+        state.put(W_FALLING, falling);
 
         if (state.get("jumping") || state.get("falling")) {
             getPosition().y(getPosition().y() + getSpeed() * delta);

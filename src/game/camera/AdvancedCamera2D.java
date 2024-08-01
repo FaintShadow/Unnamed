@@ -14,7 +14,7 @@ import java.util.Map;
 import static com.raylib.Raylib.IsKeyDown;
 
 public class AdvancedCamera2D extends Raylib.Camera2D implements Controllable {
-    private Map<String, Integer> controls = new HashMap<>();
+    private final Map<String, Integer> controls = new HashMap<>();
     private Position target = new Position();
 
     public Map<String, Integer> getControls() {
@@ -128,6 +128,7 @@ public class AdvancedCamera2D extends Raylib.Camera2D implements Controllable {
 
         Raylib.Vector2 wmax = Raylib.GetWorldToScreen2D(new Jaylib.Vector2(maxX, maxY), camera);
         Raylib.Vector2 wmin = Raylib.GetWorldToScreen2D(new Jaylib.Vector2(minX, minY), camera);
+
         if (wmax.x() < width) {
             camera.offset().x(width - (wmax.x() - ((float) width / 2)));
         }
@@ -192,7 +193,7 @@ public class AdvancedCamera2D extends Raylib.Camera2D implements Controllable {
      * @param corner The id of the screen corner you want.
      * @param vector The vector in which the XY position of the corner will be set.
      */
-    public void getCorner(int corner, Raylib.Vector2 vector) {
+    public void getCorner(int corner, Jaylib.Vector2 vector) {
 
         //  X = (Game.camera.target.x -/+ ( Game.camera.offset.x / 3 ))
         //  Y = (Game.camera.target.x -/+ ( Game.camera.offset.y / 3 ))

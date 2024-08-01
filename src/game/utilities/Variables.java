@@ -15,6 +15,10 @@ public class Variables {
     public static final String W_BOTTOM = "Bottom";
 
     public static final String W_JUMP = "Jump";
+    public static final String W_FALLING = "falling";
+    public static final String W_JUMPING = "jumping";
+    public static final String W_GROUNDED = "grounded";
+    public static final String W_IDLING = "idling";
 
     public static final String W_TILE = "Tile";
     public static final String W_CHUNK = "Chunk";

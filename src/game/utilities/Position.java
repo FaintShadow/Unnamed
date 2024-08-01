@@ -6,8 +6,7 @@ import game.utilities.errors.IllegalPositioningSystemArgument;
 
 import java.util.Arrays;
 
-import static game.utilities.Variables.CHUNKSIZE;
-import static game.utilities.Variables.POSITIONSYSTEMS;
+import static game.utilities.Variables.*;
 import static game.world.type.BaseWorld.TILESIZE;
 
 public class Position {
@@ -28,9 +27,10 @@ public class Position {
         new Position(x, y);
         this.system = system.toLowerCase();
 
-        if (Arrays.stream(POSITIONSYSTEMS).anyMatch(system::equalsIgnoreCase)) {
+        if (!Arrays.asList(POSITIONSYSTEMS).contains(system)) {
             throw new IllegalPositioningSystemArgument(system);
         }
+
         position = new Jaylib.Vector2();
     }
 
@@ -59,29 +59,29 @@ public class Position {
         this.system = system;
     }
 
-    public Raylib.Vector2 getVector2() {
+    public Jaylib.Vector2 getVector2() {
         return position;
     }
     // ----------------------------------------------------------
 
     // Set positioning system:
     public Position world() {
-        setSystem("world");
+        setSystem(W_WORLD);
         return this;
     }
 
     public Position tile() {
-        setSystem("tile");
+        setSystem(W_TILE);
         return this;
     }
 
     public Position chunk() {
-        setSystem("chunk");
+        setSystem(W_CHUNK);
         return this;
     }
 
     public Position screen() {
-        setSystem("screen");
+        setSystem(W_SCREEN);
         return this;
     }
     // ----------------------------------------------------------
@@ -91,19 +91,19 @@ public class Position {
     // TODO: Finish conversion to screen on all the methods below.
     public Position toWorld() {
         switch (getSystem()) {
-            case "world":
+            case W_WORLD:
                 break;
-            case "tile": {
+            case W_TILE: {
                 x(x() * TILESIZE );
                 y(y() * TILESIZE );
                 break;
             }
-            case "chunk": {
+            case W_CHUNK: {
                 x(x() * (TILESIZE * CHUNKSIZE) );
                 y(y() * (TILESIZE * CHUNKSIZE) );
                 break;
             }
-            case "screen": {
+            case W_SCREEN: {
                 return screen();
             }
             default:
@@ -114,19 +114,19 @@ public class Position {
 
     public Position toTile() {
         switch (getSystem()) {
-            case "tile":
+            case W_TILE:
                 break;
-            case "chunk": {
+            case W_CHUNK: {
                 x( Utils.positionDivision( (int) x(), TILESIZE * CHUNKSIZE ) );
                 y( Utils.positionDivision( (int) y(), TILESIZE * CHUNKSIZE ) );
                 break;
             }
-            case "world": {
+            case W_WORLD: {
                 x( Utils.positionDivision( (int) x(), TILESIZE ) );
                 y( Utils.positionDivision( (int) y(), TILESIZE ) );
                 break;
             }
-            case "screen":
+            case W_SCREEN:
                 return screen();
             default:
                 throw new IllegalPositioningSystemArgument(system);
@@ -136,42 +136,24 @@ public class Position {
 
     public Position toChunk() {
         switch (getSystem()) {
-            case "chunk":
+            case W_CHUNK:
                 break;
-            case "tile": {
+            case W_TILE: {
                 x( Utils.positionDivision( (int) x(), CHUNKSIZE ) );
                 y( Utils.positionDivision( (int) y(), CHUNKSIZE ) );
                 break;
             }
-            case "world": {
+            case W_WORLD: {
                 x( Utils.positionDivision( (int) x(), TILESIZE + CHUNKSIZE ) );
                 y( Utils.positionDivision( (int) y(), TILESIZE + CHUNKSIZE ) );
                 break;
             }
-            case "screen":
+            case W_SCREEN:
                 break;
             default:
                 throw new IllegalPositioningSystemArgument(system);
         }
         return chunk();
-    }
-    // ----------------------------------------------------------
-
-    // Static position conversion:
-    public static Raylib.Vector2 chunkToWorld(int chunkX, int chunkZ) {
-        return null;
-    }
-
-    public static Jaylib.Vector2 worldToChunk(int worldX, int worldZ) {
-        return null;
-    }
-
-    public static Raylib.Vector2 screenToWorld(int screenX, int screenZ) {
-        return null;
-    }
-
-    public static Raylib.Vector2 worldToScreen(int worldX, int worldZ) {
-        return null;
     }
     // ----------------------------------------------------------
 }

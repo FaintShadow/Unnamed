@@ -15,6 +15,8 @@ public class Identifier<T, R> {
     private R child;
     private String separator = ":";
 
+    public Identifier() {}
+
     public Identifier(T parent) throws InvalidIdentifierFormat {
         if (parent.toString().contains(separator)){
             throw new InvalidIdentifierFormat(parent.toString(), separator);
@@ -24,8 +26,11 @@ public class Identifier<T, R> {
 
     public Identifier(T parent, R child) throws InvalidIdentifierFormat {
         new Identifier<T, R>(parent);
+        // TODO: change the if statement later
         if (child.toString().contains(separator)){
             throw new InvalidIdentifierFormat(child.toString(), separator);
+        } else if (parent.toString().contains(separator)){
+            throw new InvalidIdentifierFormat(parent.toString(), separator);
         }
         this.child = child;
     }

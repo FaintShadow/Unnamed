@@ -4,6 +4,8 @@ import java.util.*;
 
 // Types:
 import com.raylib.Raylib;
+import game.utilities.Position;
+import game.utilities.errors.ChunkGenerationException;
 import game.utilities.errors.InvalidIdentifierFormat;
 import game.world.ecosystem.objects.Tile;
 import game.world.ecosystem.organisms.Entity;
@@ -23,10 +25,10 @@ public class Unnamed {
     private static boolean debug = false;
     private static List<Player> playerList = new ArrayList<>(4);
 
-    public static void initPlayers(Raylib.Vector2 spawnPosition) {
+    public static void initPlayers(Position spawnPosition) {
         playerList.add(
                 new Player(
-                        new Jaylib.Vector2(spawnPosition.x() + (TILESCALEDSIZE%2), spawnPosition.y() - TILESCALEDSIZE),
+                        new Position(spawnPosition.x() + (TILESCALEDSIZE%2), spawnPosition.y() - TILESCALEDSIZE, W_WORLD),
                         0,
                         TILESIZE,
                         WORLDSCALE
@@ -35,9 +37,9 @@ public class Unnamed {
         Player player = playerList.getFirst();
         player.setRectangle(
                 new Rectangle(
-                        (player.getPosition().x() - ((float) TILESIZE / 2)) * 2,
-                        (player.getPosition().y() - ((float) TILESIZE / 2)) * 2,
-                        WORLDSCALE * (float) TILESIZE, WORLDSCALE * (float) TILESIZE
+                        (player.getPosition().x() - ((float) TILESCALEDSIZE / 2)) * 2,
+                        (player.getPosition().y() - ((float) TILESCALEDSIZE / 2)) * 2,
+                        TILESCALEDSIZE, TILESCALEDSIZE
                 )
         );
         player.addControls(player.getControls(), W_LEFT, KEY_A);
@@ -56,7 +58,7 @@ public class Unnamed {
         camera.addControls(camera.getControls(), "zoom_out", KEY_KP_SUBTRACT);
 
         camera.cTV(playerList);
-        camera.target(camera.getTargetVector());
+        camera.target(camera.getTarget().getVector2());
         camera.offset(new Jaylib.Vector2((float) GAMEWIDTH / 2, (float) GAMEHEIGHT / 2));
         camera.rotation(0);
         camera.zoom(1);
@@ -65,11 +67,10 @@ public class Unnamed {
     public static void updatePlayers(List<Player> playerList, Map<String, List<Tile>> map, float deltaTime) {
         playerList.forEach(player -> {
             player.updateCollision(player.getEntityCurrentChunk(map), TILESIZE, WORLDSCALE, GRAVITY, deltaTime);
-            player.updateVector(TILESIZE, WORLDSCALE);
         });
     }
 
-    public static void main(String[] args) throws InvalidIdentifierFormat {
+    public static void main(String[] args) throws ChunkGenerationException {
         // Init Window:
         InitWindow(GAMEWIDTH, GAMEHEIGHT, "Unnamed");
 
@@ -77,13 +78,14 @@ public class Unnamed {
         int spawnX = new java.util.Random().nextInt();
         int spawnY = new java.util.Random().nextInt();
 
-        Jaylib.Vector2 spawnPosition = OverWorld.genChunk(spawnX * 1000, spawnY * 1000).getFirst().getPosition();
+        OverWorld overWorld = new OverWorld();
+        Position spawnPosition = new Position(spawnX * 1000, spawnY * 1000, W_CHUNK);
+        spawnPosition = overWorld.genChunk(spawnPosition).getFirst().getPosition();
         Map<String, List<Tile>> map = new HashMap<>();
 
         initPlayers(spawnPosition);
         AdvancedCamera2D camera = new AdvancedCamera2D();
         setCameraProps(camera);
-
         // =========================================================================
 
         Jaylib.Vector2 cameraAncher = new Jaylib.Vector2();
@@ -106,7 +108,7 @@ public class Unnamed {
             ClearBackground(WHITE);
             BeginMode2D(camera);
 
-            OverWorld.renderChunks(camera, cameraAncher, map);
+            overWorld.renderChunks(camera, cameraAncher, map);
 
             // Entities.Player:
             playerList.forEach(player -> {
@@ -116,7 +118,7 @@ public class Unnamed {
             });
 
             EndMode2D();
-            //updatePlayers(playerList, map, deltaTime);
+            updatePlayers(playerList, map, deltaTime);
             EndDrawing();
         }
         CloseWindow();

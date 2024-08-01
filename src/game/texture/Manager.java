@@ -45,15 +45,15 @@ public class Manager {
         return sprite;
     }
 
-    /**
-     * @param identifier The identifier of the tile
-     * @return Rectangle of the texture's position
-     */
+    public Jaylib.Rectangle getTextureRec(int x, int y){
+        return new Jaylib.Rectangle((x - 1) * tileWidth, (y - 1) * tileHeight, tileWidth, tileHeight);
+    }
+
     public Jaylib.Rectangle getTextureRec(Identifier<Integer, Integer> identifier){
-        return new Jaylib.Rectangle((identifier.getParent() - 1) * tileWidth, (identifier.getChild() - 1) * tileHeight, tileWidth, tileHeight);
+        return getTextureRec(identifier.getParent(), identifier.getChild());
     }
 
     public Jaylib.Rectangle getTextureRec(Tile tile){
-        return getTextureRec(tile.getId());
+        return getTextureRec(tile.getId().getParent(), tile.getId().getChild());
     }
 }
