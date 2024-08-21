@@ -2,124 +2,120 @@ package game;
 
 import java.util.*;
 
-// Types:
-import com.raylib.Raylib;
-import game.utilities.Position;
-import game.utilities.errors.ChunkGenerationException;
-import game.utilities.errors.InvalidIdentifierFormat;
-import game.world.ecosystem.objects.Tile;
+import game.engine.Position;
+import game.utilities.concerns.IllegalMethodUsage;
+import game.engine.concerns.InvalidIdentifierFormat;
+import game.engine.noise.Perlin1D;
 import game.world.ecosystem.organisms.Entity;
 import game.world.ecosystem.organisms.Player;
-import game.camera.AdvancedCamera2D;
+import game.engine.AdvancedCamera2D;
 import com.raylib.Jaylib;
 import com.raylib.Jaylib.Rectangle;
 import game.world.type.OverWorld;
+import org.jetbrains.annotations.NotNull;
 
-// Libs:
 import static com.raylib.Jaylib.*;
 import static game.utilities.Variables.*;
 import static game.world.type.BaseWorld.*;
 
 public class Unnamed {
 
-    private static boolean debug = false;
-    private static List<Player> playerList = new ArrayList<>(4);
+    private static final List<Player> playerList = new ArrayList<>(4);
 
     public static void initPlayers(Position spawnPosition) {
         playerList.add(
                 new Player(
-                        new Position(spawnPosition.x() + (TILESCALEDSIZE%2), spawnPosition.y() - TILESCALEDSIZE, W_WORLD),
-                        0,
-                        TILESIZE,
-                        WORLDSCALE
+                        new Position(spawnPosition.x() + (TILESCALEDSIZE%2), spawnPosition.y() - TILESCALEDSIZE, W_WORLD)
                 )
         );
+
         Player player = playerList.getFirst();
+
         player.setRectangle(
                 new Rectangle(
                         (player.getPosition().x() - ((float) TILESCALEDSIZE / 2)) * 2,
                         (player.getPosition().y() - ((float) TILESCALEDSIZE / 2)) * 2,
-                        TILESCALEDSIZE, TILESCALEDSIZE
+                        TILESCALEDSIZE,
+                        TILESCALEDSIZE
                 )
         );
-        player.addControls(player.getControls(), W_LEFT, KEY_A);
-        player.addControls(player.getControls(), W_RIGHT, KEY_D);
-        player.addControls(player.getControls(), W_JUMP, KEY_W);
-        player.addControls(player.getControls(), W_PAUSE, KEY_X);
-        player.addControls(player.getControls(), W_RESET, KEY_R);
+
+        player.addControls(W_JUMP, KEY_W);
+        player.addControls(W_LEFT, KEY_D);
+        player.addControls(W_DOWN, KEY_S);
+        player.addControls(W_RIGHT, KEY_A);
+        player.addControls(W_PAUSE, KEY_X);
+        player.addControls(W_RESET, KEY_R);
     }
 
-    public static void setCameraProps(AdvancedCamera2D camera) {
-        camera.addControls(camera.getControls(), W_UP, KEY_UP);
-        camera.addControls(camera.getControls(), W_DOWN, KEY_DOWN);
-        camera.addControls(camera.getControls(), W_LEFT, KEY_LEFT);
-        camera.addControls(camera.getControls(), W_RIGHT, KEY_RIGHT);
-        camera.addControls(camera.getControls(), "zoom_in", KEY_KP_ADD);
-        camera.addControls(camera.getControls(), "zoom_out", KEY_KP_SUBTRACT);
-
+    public static void setCameraProps(@NotNull AdvancedCamera2D camera) {
         camera.cTV(playerList);
-        camera.target(camera.getTarget().getVector2());
+        camera.target(camera.getTargetPosition().getVector2());
         camera.offset(new Jaylib.Vector2((float) GAMEWIDTH / 2, (float) GAMEHEIGHT / 2));
         camera.rotation(0);
         camera.zoom(1);
     }
 
-    public static void updatePlayers(List<Player> playerList, Map<String, List<Tile>> map, float deltaTime) {
-        playerList.forEach(player -> {
-            player.updateCollision(player.getEntityCurrentChunk(map), TILESIZE, WORLDSCALE, GRAVITY, deltaTime);
-        });
+    public static Position getSpawnPoint(int randomX, @NotNull Perlin1D noise) throws IllegalMethodUsage {
+        double height = noise.getHeight(noise.getIncremental() * ((double) randomX / TILESCALEDSIZE));
+        return new Position(randomX, (int) (height * 256), W_TILE).toWorld();
     }
 
-    public static void main(String[] args) throws ChunkGenerationException {
+    public static void main(String[] args) throws InvalidIdentifierFormat, IllegalMethodUsage {
         // Init Window:
         InitWindow(GAMEWIDTH, GAMEHEIGHT, "Unnamed");
 
         // Init Overworld:
         int spawnX = new java.util.Random().nextInt();
-        int spawnY = new java.util.Random().nextInt();
 
         OverWorld overWorld = new OverWorld();
-        Position spawnPosition = new Position(spawnX * 1000, spawnY * 1000, W_CHUNK);
-        spawnPosition = overWorld.genChunk(spawnPosition).getFirst().getPosition();
-        Map<String, List<Tile>> map = new HashMap<>();
+
+        Position spawnPosition = getSpawnPoint(spawnX, overWorld.getPerlinNoise());
 
         initPlayers(spawnPosition);
+
         AdvancedCamera2D camera = new AdvancedCamera2D();
         setCameraProps(camera);
         // =========================================================================
 
-        Jaylib.Vector2 cameraAncher = new Jaylib.Vector2();
         // Game Loop:
         while (!WindowShouldClose()) {
             float deltaTime = GetFrameTime();
 
             camera.cTV(playerList);
-            AdvancedCamera2D.sUCCSF(camera, playerList.getFirst(), GAMEWIDTH, GAMEHEIGHT, deltaTime);
+            camera.sUCC(GAMEWIDTH, GAMEHEIGHT, playerList.getFirst());
 
             for (Entity entity : playerList) {
                 if (IsKeyPressed(entity.getControls().get(W_RESET))) {
                     entity.getPosition().x(400);
                     entity.getPosition().y(280);
-                    entity.setSpeed(0.0f);
+                    entity.setsPD(0);
                 }
+            }
+
+            if (IsKeyDown(KEY_KP_ADD)) {
+                camera.zoom(camera.zoom() + 0.04f);
+            }
+            if (IsKeyDown(KEY_KP_SUBTRACT)) {
+                camera.zoom(camera.zoom() - 0.04f);
+            }
+            if (camera.zoom() > 3.0) {
+                camera.zoom(3.0f);
+            } else if (camera.zoom() < 0.25f) {
+                camera.zoom(0.25f);
             }
 
             BeginDrawing();
             ClearBackground(WHITE);
             BeginMode2D(camera);
 
-            overWorld.renderChunks(camera, cameraAncher, map);
+            overWorld.renderChunks(camera);
 
-            // Entities.Player:
-            playerList.forEach(player -> {
-                player.getPosition().x(player.getPosition().x() - (((float) TILESIZE / 2) * WORLDSCALE));
-                player.getPosition().y(player.getPosition().y() - (((float) TILESIZE / 2) * WORLDSCALE));
-                DrawRectangleRec(player.getRect(), RED);
-            });
+            playerList.forEach(player -> DrawRectangleRec(player.getRect(), RED));
 
             EndMode2D();
-            updatePlayers(playerList, map, deltaTime);
             EndDrawing();
+            playerList.forEach(player -> player.updatePosition(deltaTime));
         }
         CloseWindow();
     }

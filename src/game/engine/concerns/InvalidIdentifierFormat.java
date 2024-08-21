@@ -1,4 +1,4 @@
-package game.utilities.errors;
+package game.engine.concerns;
 
 public class InvalidIdentifierFormat extends Exception{
     public InvalidIdentifierFormat(String part, String separator) {

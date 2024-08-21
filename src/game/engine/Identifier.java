@@ -1,6 +1,6 @@
-package game.utilities;
+package game.engine;
 
-import game.utilities.errors.InvalidIdentifierFormat;
+import game.engine.concerns.InvalidIdentifierFormat;
 
 /**
  * The Identifier class creates a compound identifier consisting of two parts: 'Parent' and 'Child'.
@@ -29,8 +29,6 @@ public class Identifier<T, R> {
         // TODO: change the if statement later
         if (child.toString().contains(separator)){
             throw new InvalidIdentifierFormat(child.toString(), separator);
-        } else if (parent.toString().contains(separator)){
-            throw new InvalidIdentifierFormat(parent.toString(), separator);
         }
         this.child = child;
     }
@@ -46,8 +44,15 @@ public class Identifier<T, R> {
     }
 
     public void set(T parent, R child) throws InvalidIdentifierFormat {
+        if (parent.toString().contains(separator)){
+            throw new InvalidIdentifierFormat(parent.toString(), separator);
+        }
+        if (child.toString().contains(separator)){
+            throw new InvalidIdentifierFormat(child.toString(), separator);
+        }
         this.parent = parent;
         this.child = child;
+
     }
 
     public T getParent() {
@@ -66,8 +71,14 @@ public class Identifier<T, R> {
         this.child = child;
     }
 
+    // Overrides:
     @Override
     public String toString(){
         return parent + separator + child;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return (obj instanceof Identifier && obj.toString().equals(toString()));
     }
 }

@@ -1,8 +1,8 @@
-package game.texture;
+package game.engine.texture;
 
 import com.raylib.Jaylib;
 import com.raylib.Raylib;
-import game.utilities.Identifier;
+import game.engine.Identifier;
 import game.world.ecosystem.objects.Tile;
 
 import static com.raylib.Raylib.LoadTexture;
@@ -54,6 +54,6 @@ public class Manager {
     }
 
     public Jaylib.Rectangle getTextureRec(Tile tile){
-        return getTextureRec(tile.getId().getParent(), tile.getId().getChild());
+        return getTextureRec(tile.getIdentifier().getParent(), tile.getIdentifier().getChild());
     }
 }

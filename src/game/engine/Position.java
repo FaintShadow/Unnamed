@@ -1,10 +1,10 @@
-package game.utilities;
+package game.engine;
 
 import com.raylib.Jaylib;
 import com.raylib.Raylib;
-import game.camera.AdvancedCamera2D;
-import game.utilities.errors.IllegalMethodUsage;
-import game.utilities.errors.IllegalPositioningSystemArgument;
+import game.utilities.Utils;
+import game.utilities.concerns.IllegalMethodUsage;
+import game.engine.concerns.IllegalPositioningSystemArgument;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -14,45 +14,51 @@ import static game.utilities.Variables.*;
 import static game.world.type.BaseWorld.TILESIZE;
 
 public class Position {
-    private Jaylib.Vector2 position;
+    private Jaylib.Vector2 vector = new Jaylib.Vector2();
     private String system;
 
     public Position() {
-        position = new Jaylib.Vector2();
+        vector = new Jaylib.Vector2();
     }
 
-    public Position(float x, float y) {
-        position = new Jaylib.Vector2();
-        this.position.x(x);
-        this.position.y(y);
+    public Position(int x, int y) {
+        this.vector.x(x);
+        this.vector.y(y);
     }
 
-    public Position(float x, float y, String system) throws IllegalPositioningSystemArgument {
-        new Position(x, y);
-        this.system = system.toLowerCase();
+    public Position(int x, int y, String system) throws IllegalPositioningSystemArgument {
+        new Position(x,y);
+        this.system = system;
 
         if (!Arrays.asList(POSITIONSYSTEMS).contains(system)) {
             throw new IllegalPositioningSystemArgument(system);
         }
+    }
 
-        position = new Jaylib.Vector2();
+    public Position(Identifier<Integer, Integer> pos, String system) throws IllegalPositioningSystemArgument {
+        new Position(pos.getParent(),pos.getChild());
+        this.system = system;
+
+        if (!Arrays.asList(POSITIONSYSTEMS).contains(system)) {
+            throw new IllegalPositioningSystemArgument(system);
+        }
     }
 
     // Getters & Setters:
-    public float x() {
-        return position.x();
+    public int x() {
+        return (int) vector.x();
     }
 
-    public void x(float x) {
-        position.x(x);
+    public void x(int x) {
+        vector.x(x);
     }
 
-    public float y() {
-        return position.y();
+    public int y() {
+        return (int) vector.y();
     }
 
-    public void y(float y) {
-        position.y(y);
+    public void y(int y) {
+        vector.y(y);
     }
 
     public String getSystem() {
@@ -60,11 +66,14 @@ public class Position {
     }
 
     public void setSystem(String system) {
+        if (!Arrays.asList(POSITIONSYSTEMS).contains(system)) {
+            throw new IllegalPositioningSystemArgument(system);
+        }
         this.system = system;
     }
 
     public Jaylib.Vector2 getVector2() {
-        return position;
+        return vector;
     }
     // ----------------------------------------------------------
 
@@ -98,11 +107,18 @@ public class Position {
      * Used to make a duplicate of the current position, Use this when you want to convert a position without changing it
      * @return Duplicate of the same position
      */
-    public Position duplicate(){
-        return new Position(position.x(), position.y(), system);
+    public Position newPosition(){
+        return new Position((int) vector.x(), (int) vector.y(), system);
     }
 
-    public Position toWorld() throws NoSuchMethodException, IllegalMethodUsage {
+    /**
+     * Usually used when you convert without using 'newPosition()'. Makes converting return no value
+     */
+    public void noReturn(){
+        // This method is used when you finish converting without needing to put the new value in a new variable
+    }
+
+    public Position toWorld() throws IllegalMethodUsage {
         switch (getSystem()) {
             case W_WORLD:
                 break;
@@ -117,7 +133,9 @@ public class Position {
                 break;
             }
             case W_SCREEN: {
-                throw new IllegalMethodUsage(Position.class.getMethod("toWorld"), "converting ONLY tile and chunk positions to world positions");
+                Method method = Object.class
+                        .getEnclosingMethod();
+                throw new IllegalMethodUsage(method, "converting ONLY tile and chunk positions to world positions");
             }
             default:
                 throw new IllegalPositioningSystemArgument(system);
@@ -128,37 +146,40 @@ public class Position {
     /**
      * This method is only used to convert screen position to world position, if you're converting another
      * position type please use the other toWorld method
-     * @param camera
+     * @param camera world camera
      * @return A world position
-     * @throws NoSuchMethodException
-     * @throws IllegalMethodUsage
+     * @throws IllegalMethodUsage thrown when the method is used for purposes that it shouldn't perform
      */
-    public Position toWorld(AdvancedCamera2D camera) throws NoSuchMethodException, IllegalMethodUsage {
+    public Position toWorld(AdvancedCamera2D camera) throws IllegalMethodUsage {
         if (getSystem().equals(W_SCREEN)) {
             Raylib.Vector2 pos = GetScreenToWorld2D(getVector2(), camera);
-            x( pos.x() );
-            y( pos.y() );
-            return screen();
+            x((int) pos.x());
+            y((int) pos.y());
+            return world();
         }
-        throw new IllegalMethodUsage(Position.class.getMethod("toWorld"), system);
+        Method method = Object.class
+                .getEnclosingMethod();
+        throw new IllegalMethodUsage(method, system);
     }
 
-    public Position toTile() throws NoSuchMethodException, IllegalMethodUsage {
+    public Position toTile() throws IllegalMethodUsage {
         switch (getSystem()) {
             case W_TILE:
                 break;
             case W_CHUNK: {
-                x( Utils.positionDivision( (int) x(), TILESIZE * CHUNKSIZE ) );
-                y( Utils.positionDivision( (int) y(), TILESIZE * CHUNKSIZE ) );
+                x( Utils.positionDivision( x(), TILESIZE * CHUNKSIZE ) );
+                y( Utils.positionDivision( y(), TILESIZE * CHUNKSIZE ) );
                 break;
             }
             case W_WORLD: {
-                x( Utils.positionDivision( (int) x(), TILESIZE ) );
-                y( Utils.positionDivision( (int) y(), TILESIZE ) );
+                x( Utils.positionDivision( x(), TILESIZE ) );
+                y( Utils.positionDivision( y(), TILESIZE ) );
                 break;
             }
             case W_SCREEN:
-                throw new IllegalMethodUsage(Position.class.getMethod("toTile"), "converting ONLY tile and chunk positions to world positions");
+                Method method = Object.class
+                        .getEnclosingMethod();
+                throw new IllegalMethodUsage(method, "converting ONLY tile and chunk positions to world positions");
             default:
                 throw new IllegalPositioningSystemArgument(system);
         }
@@ -173,35 +194,36 @@ public class Position {
      * @throws NoSuchMethodException
      * @throws IllegalMethodUsage
      */
-    public Position toTile(AdvancedCamera2D camera) throws NoSuchMethodException, IllegalMethodUsage {
+    public Position toTile(AdvancedCamera2D camera) throws IllegalMethodUsage {
         if (getSystem().equals(W_SCREEN)) {
             Raylib.Vector2 pos = GetScreenToWorld2D(getVector2(), camera);
-            x( pos.x() );
-            y( pos.y() );
+            x((int) pos.x());
+            y((int) pos.y());
             return toTile();
         }
-        Method method = new Object() {}
-                .getClass()
+        Method method = Object.class
                 .getEnclosingMethod();
         throw new IllegalMethodUsage(method, "converting ONLY screen positions to chunk positions");
     }
 
-    public Position toChunk() throws NoSuchMethodException, IllegalMethodUsage {
+    public Position toChunk() throws IllegalMethodUsage {
         switch (getSystem()) {
             case W_CHUNK:
                 break;
             case W_TILE: {
-                x( Utils.positionDivision( (int) x(), CHUNKSIZE ) );
-                y( Utils.positionDivision( (int) y(), CHUNKSIZE ) );
+                x( Utils.positionDivision( x(), CHUNKSIZE ) );
+                y( Utils.positionDivision( y(), CHUNKSIZE ) );
                 break;
             }
             case W_WORLD: {
-                x( Utils.positionDivision( (int) x(), TILESIZE + CHUNKSIZE ) );
-                y( Utils.positionDivision( (int) y(), TILESIZE + CHUNKSIZE ) );
+                x( Utils.positionDivision( x(), TILESIZE + CHUNKSIZE ) );
+                y( Utils.positionDivision( y(), TILESIZE + CHUNKSIZE ) );
                 break;
             }
             case W_SCREEN:
-                throw new IllegalMethodUsage(Position.class.getMethod("toChunk"), "converting ONLY tile and world positions to chunk positions");
+                Method method = Object.class
+                        .getEnclosingMethod();
+                throw new IllegalMethodUsage(method, "converting ONLY tile and world positions to chunk positions");
             default:
                 throw new IllegalPositioningSystemArgument(system);
         }
@@ -213,17 +235,18 @@ public class Position {
      * position type please use the other toChunk method
      * @param camera
      * @return A chunk position of the screen position
-     * @throws NoSuchMethodException
      * @throws IllegalMethodUsage
      */
-    public Position toChunk(AdvancedCamera2D camera) throws NoSuchMethodException, IllegalMethodUsage {
+    public Position toChunk(AdvancedCamera2D camera) throws IllegalMethodUsage {
         if (getSystem().equals(W_SCREEN)) {
             Raylib.Vector2 pos = GetScreenToWorld2D(getVector2(), camera);
-            x( pos.x() );
-            y( pos.y() );
+            x((int) pos.x());
+            y((int) pos.y());
             return toChunk();
         }
-        throw new IllegalMethodUsage(Position.class.getMethod("toChunk"), "converting ONLY screen positions to chunk positions");
+        Method method = Object.class
+                .getEnclosingMethod();
+        throw new IllegalMethodUsage(method, "converting ONLY screen positions to chunk positions");
     }
     // ----------------------------------------------------------
 }

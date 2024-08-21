@@ -1,4 +1,4 @@
-package game.utilities.errors;
+package game.engine.concerns;
 
 public class ChunkGenerationException extends Exception{
     public ChunkGenerationException(Throwable cause) {

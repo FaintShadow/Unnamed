@@ -1,7 +1,7 @@
-package game.camera;
+package game.engine;
 
-import game.utilities.Position;
-import game.utilities.interfaces.Controllable;
+import game.utilities.concerns.IllegalMethodUsage;
+import game.engine.interfaces.Controllable;
 import game.world.ecosystem.objects.Tile;
 import game.world.ecosystem.organisms.Entity;
 import com.raylib.Jaylib;
@@ -12,42 +12,45 @@ import java.util.List;
 import java.util.Map;
 
 import static com.raylib.Raylib.IsKeyDown;
+import static game.utilities.Variables.*;
 
-public class AdvancedCamera2D extends Raylib.Camera2D implements Controllable {
+public class AdvancedCamera2D extends Raylib.Camera2D implements Controllable<String, Integer> {
     private final Map<String, Integer> controls = new HashMap<>();
-    private Position target = new Position();
+
+    private Position targetPosition = new Position();
 
     public Map<String, Integer> getControls() {
         return controls;
     }
 
-    public Position getTarget() {
-        return target;
+    public Position getTargetPosition() {
+        return targetPosition;
     }
 
-    public void setTarget(Position pos) {
-        this.target = pos;
+    public void setTargetPosition(Position pos) {
+        this.targetPosition = pos;
     }
 
     // Camera Target Vector:
     public void cTV(List<? extends Entity> el) {
-        float totX = 0.0F;
-        float totY = 0.0F;
-        float ignoreDistance = 400.0F;
+        float totX = 0;
+        float totY = 0;
+        float ignoreDistance = 400;
         int i = 0;
 
         for (Entity E : el) {
-            if (Raylib.Vector2Distance(E.getPosition().getVector2(), this.target.getVector2()) < ignoreDistance) {
+            if (Raylib.Vector2Distance(E.getPosition().getVector2(), this.targetPosition.getVector2()) < ignoreDistance) {
                 totX += E.getPosition().x();
                 totY += E.getPosition().y();
                 ++i;
             }
         }
 
-        float avgX = totX / i;
-        float avgY = totY / i;
-        this.target.x(avgX);
-        this.target.y(avgY);
+        int avgX = Math.divideExact((int) totX, i);
+        int avgY = Math.divideExact((int) totY, i);
+
+        this.targetPosition.x(avgX);
+        this.targetPosition.y(avgY);
     }
 
     // Single U? Camera Center:
@@ -59,7 +62,7 @@ public class AdvancedCamera2D extends Raylib.Camera2D implements Controllable {
     // Single U? Camera Center:
     public void mUCC(int width, int height) {
         super.offset(new Jaylib.Vector2(width / 2.0F, height / 2.0F));
-        super.target(target.getVector2());
+        super.target(targetPosition.getVector2());
     }
 
     // Single U? Camera Center Smooth Follow
@@ -87,7 +90,7 @@ public class AdvancedCamera2D extends Raylib.Camera2D implements Controllable {
 
         camera.offset().x(width / 2);
         camera.offset().y(height / 2);
-        Raylib.Vector2 difference = Raylib.Vector2Subtract(camera.target.getVector2(), camera.target());
+        Raylib.Vector2 difference = Raylib.Vector2Subtract(camera.targetPosition.getVector2(), camera.target());
 
         float length = Raylib.Vector2Length(difference);
         if (length > minEffLength) {
@@ -105,7 +108,7 @@ public class AdvancedCamera2D extends Raylib.Camera2D implements Controllable {
 
         camera.offset().x((width / 2));
         camera.offset().y((height / 2));
-        Raylib.Vector2 difference = Raylib.Vector2Subtract(camera.target.getVector2(), camera.target());
+        Raylib.Vector2 difference = Raylib.Vector2Subtract(camera.targetPosition.getVector2(), camera.target());
 
         float length = Raylib.Vector2Length(difference);
         float minX;
@@ -151,17 +154,17 @@ public class AdvancedCamera2D extends Raylib.Camera2D implements Controllable {
         int cspd = 300;
         int cuspd = 300;
 
-        if (IsKeyDown(controls.get("left"))) {
-            target.x(target.x() - (cspd * delta));
+        if (IsKeyDown(controls.get(W_LEFT))) {
+            targetPosition.x((int) (targetPosition.x() - (cspd * delta)));
         }
-        if (IsKeyDown(controls.get("right"))) {
-            target.x(target.x() + (cspd * delta));
+        if (IsKeyDown(controls.get(W_RIGHT))) {
+            targetPosition.x((int) (targetPosition.x() + (cspd * delta)));
         }
-        if (IsKeyDown(controls.get("up"))) {
-            target.y(target.y() - (cuspd * delta));
+        if (IsKeyDown(controls.get(W_UP))) {
+            targetPosition.y((int) (targetPosition.y() - (cuspd * delta)));
         }
-        if (IsKeyDown(controls.get("down"))) {
-            target.y(target.y() + (cuspd * delta));
+        if (IsKeyDown(controls.get(W_DOWN))) {
+            targetPosition.y((int) (targetPosition.y() + (cuspd * delta)));
         }
     }
 
@@ -193,7 +196,7 @@ public class AdvancedCamera2D extends Raylib.Camera2D implements Controllable {
      * @param corner The id of the screen corner you want.
      * @param vector The vector in which the XY position of the corner will be set.
      */
-    public void getCorner(int corner, Jaylib.Vector2 vector) {
+    /*public void getCorner(int corner, Position vector) {
 
         //  X = (Game.camera.target.x -/+ ( Game.camera.offset.x / 3 ))
         //  Y = (Game.camera.target.x -/+ ( Game.camera.offset.y / 3 ))
@@ -220,6 +223,48 @@ public class AdvancedCamera2D extends Raylib.Camera2D implements Controllable {
             default:
                 break;
         }
+    }*/
+
+    /**
+     * Get the XY of the screen's corners
+     * <table>
+     *     <tr>
+     *         <th>Corner</th>
+     *         <th>Id</th>
+     *     </tr>
+     *     <tr>
+     *         <td>Top left</td>
+     *         <td>1</td>
+     *     </tr>
+     *     <tr>
+     *         <td>Top right</td>
+     *         <td>2</td>
+     *     </tr>
+     *     <tr>
+     *         <td>Bottom right</td>
+     *         <td>3</td>
+     *     </tr>
+     *     <tr>
+     *         <td>Bottom left</td>
+     *         <td>4</td>
+     *     </tr>
+     * </table>
+     *
+     * @param corner The id of the screen corner you want.
+     */
+    public Position getScreenCorner(int corner) throws IllegalMethodUsage {
+        return switch (corner) {
+            case 1 -> new Position(0, 0, W_SCREEN).toWorld(this);
+            case 2 -> new Position(GAMEWIDTH, 0, W_SCREEN).toWorld(this);
+            case 3 -> new Position(GAMEWIDTH, GAMEHEIGHT, W_SCREEN).toWorld(this);
+            case 4 -> new Position(0, GAMEHEIGHT, W_SCREEN).toWorld(this);
+            default -> throw new IllegalArgumentException("Incorrect corner identifier, Must be 1-4");
+        };
+    }
+
+    @Override
+    public void addControls(String name, Integer key) {
+        controls.put(name, key);
     }
 }
 

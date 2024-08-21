@@ -1,51 +1,67 @@
 package game.world.type;
 
-import game.noise.Perlin1D;
-import game.utilities.Identifier;
-import game.utilities.Position;
-import game.utilities.errors.ChunkGenerationException;
-import game.utilities.errors.InvalidIdentifierFormat;
+import game.utilities.concerns.IllegalMethodUsage;
+import game.engine.noise.Perlin1D;
+import game.engine.Identifier;
+import game.engine.Position;
+import game.engine.concerns.ChunkGenerationException;
+import game.world.ecosystem.objects.Chunk;
 import game.world.ecosystem.objects.Tile;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static game.utilities.Variables.CHUNKSIZE;
 
 public class OverWorld extends BaseWorld {
-    private static final Perlin1D noise = new Perlin1D(0.5, 8);
+    private Perlin1D perlinNoise = new Perlin1D(0.5, 8);
 
-    public List<Tile> genChunk(Position position) throws ChunkGenerationException {
-        ArrayList<Tile> chunkTiles = new ArrayList<>();
-        Identifier<Integer, Integer> tempId = new Identifier<>();
+    @Override
+    public Chunk generateChunk(Position chunkPosition) throws ChunkGenerationException {
+        Chunk chunk = new Chunk();
 
-        for (int yp = 0; yp < CHUNKSIZE; yp++) {
-            for (int xp = 0; xp < CHUNKSIZE; xp++) {
-                // Get the targeted chunk's X & Y:
-                float targetX = position.x() + ((float) xp * TILESCALEDSIZE);
-                float targetY = position.y() + ((float) yp * TILESCALEDSIZE);
+        try{
+            Position chunkStartingTile = chunkPosition.toTile();
 
-                // Jaylib.Rectangle rec = new Jaylib.Rectangle(targetX, targetY, TILESCALEDSIZE, TILESCALEDSIZE);
-                Tile tile = new Tile();
-                tile.setPosition(new Position(targetX, targetY));
-                double height = noise.perlinNoise1D(targetX) * 100;
-                if (targetY > height) {
-                    tempId.setParent(1);
-                    tempId.setChild(4);
-                    tile.setId(tempId);
-                    tile.setCollision(true);
-                } else if (targetY + TILESCALEDSIZE > height) {
-                    tempId.setParent(8);
-                    tempId.setChild(4);
+            for (int yp = 0; yp < CHUNKSIZE; yp++) {
+                for (int xp = 0; xp < CHUNKSIZE; xp++) {
 
-                    tile.setId(tempId);
-                    tile.setCollision(true);
-                }
-                if (tile.getId() != null) {
-                    chunkTiles.add(tile);
+                    // Get the targeted chunk's X & Y:
+                    int targetX = chunkStartingTile.x() + xp;
+                    int targetY = chunkStartingTile.y() + yp;
+
+                    // Jaylib.Rectangle rec = new Jaylib.Rectangle(targetX, targetY, TILESCALEDSIZE, TILESCALEDSIZE);
+
+                    Identifier<Integer, Integer> tileId = new Identifier<>();
+                    Tile tile = new Tile();
+                    tile.setPosition(new Position(targetX, targetY));
+
+                    double height = perlinNoise.getHeight(perlinNoise.getIncremental() * targetX);
+
+                    if (targetY <= height) {
+                        tileId.setParent(1);
+                        tileId.setChild(4);
+                    } else if (targetY + TILESCALEDSIZE > height) {
+                        tileId.setParent(8);
+                        tileId.setChild(4);
+                    }
+
+                    if (targetY > height || targetY + TILESCALEDSIZE > height) {
+                        tile.setIdentifier(tileId);
+                        tile.setCollision(true);
+                        chunk.addTile(tile);
+                    }
                 }
             }
+        } catch (IllegalMethodUsage e){
+            System.out.println(e.getMessage());
         }
-        return chunkTiles;
+
+        return chunk;
+    }
+
+    public Perlin1D getPerlinNoise() {
+        return perlinNoise;
+    }
+
+    public void setPerlinNoise(Perlin1D perlinNoise) {
+        this.perlinNoise = perlinNoise;
     }
 }

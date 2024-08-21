@@ -1,4 +1,4 @@
-package game.utilities.errors;
+package game.engine.concerns;
 
 public class IllegalPositioningSystemArgument extends IllegalArgumentException {
     public IllegalPositioningSystemArgument(String system) {

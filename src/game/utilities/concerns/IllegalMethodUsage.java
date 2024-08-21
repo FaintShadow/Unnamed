@@ -1,4 +1,4 @@
-package game.utilities.errors;
+package game.utilities.concerns;
 
 import java.lang.reflect.Method;
 
