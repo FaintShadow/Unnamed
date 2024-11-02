@@ -1,11 +1,11 @@
 package game.common.interfaces;
 
 /**
- * When implemented, The class's method that return 'void' and are not static should return their own class.
- * For an example, you can check out the class Position
- * @param <T> Any Class
+ * Interface for objects that can produce copies of themselves and utilize method chaining.
+ * Methods returning void are designed to return the implementing class instance (this) instead.
+ * @param <T> The type of the implementing class
  */
-public interface Returnable<T> {
-    void noReturn();
+interface Returnable<T> {
+    default void noReturn(){}
     T copy();
 }

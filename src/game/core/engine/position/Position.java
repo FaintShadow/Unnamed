@@ -20,15 +20,27 @@ public class Position implements Returnable<Position> {
     private Jaylib.Vector2 vector = new Jaylib.Vector2();
     private String system;
 
-    public Position() {
-        vector = new Jaylib.Vector2();
-    }
+    public Position() {}
 
+    /**
+     * Creates a position in the default coordinate system
+     *
+     * @param x X coordinate
+     * @param y Y coordinate
+     */
     public Position(int x, int y) {
         this.vector.x(x);
         this.vector.y(y);
     }
 
+    /**
+     * Creates a position in a specified coordinate system
+     *
+     * @param x X coordinate
+     * @param y Y coordinate
+     * @param system The coordinate system to use (World, Tile, Chunk, Screen)
+     * @throws IllegalPositioningSystemArgument If the system is not recognized
+     */
     public Position(int x, int y, String system) throws IllegalPositioningSystemArgument {
         this.vector.x(x);
         this.vector.y(y);
@@ -39,6 +51,13 @@ public class Position implements Returnable<Position> {
         }
     }
 
+    /**
+     * Creates a position from an identifier in a specified coordinate system
+     *
+     * @param pos Identifier containing x,y coordinates as parent,child
+     * @param system The coordinate system to use
+     * @throws IllegalPositioningSystemArgument If the system is not recognized
+     */
     public Position(Identifier<Integer, Integer> pos, String system) throws IllegalPositioningSystemArgument {
         this.vector.x(pos.getParent());
         this.vector.y(pos.getChild());
@@ -84,47 +103,48 @@ public class Position implements Returnable<Position> {
     // ----------------------------------------------------------
 
     // Set positioning system:
+    /**
+     * convert to World coordinate system
+     * @return This position instance for chaining
+     */
     public Position world() {
         setSystem(W_WORLD).noReturn();
         return this;
     }
 
+    /**
+     * convert to Tile coordinate system
+     * @return This position instance for chaining
+     */
     public Position tile() {
         setSystem(W_TILE).noReturn();
         return this;
     }
 
+    /**
+     * convert to Tile coordinate system
+     * @return This position instance for chaining
+     */
     public Position chunk() {
         setSystem(W_CHUNK).noReturn();
         return this;
     }
 
+    /**
+     * convert to Screen coordinate system
+     * @return This position instance for chaining
+     */
     public Position screen() {
         setSystem(W_SCREEN).noReturn();
         return this;
     }
     // ----------------------------------------------------------
 
-    // Stream conversion:
-    // Screen conversion is still unfinished in all of methods below.
-    // TODO: Finish conversion to screen on all the methods below.
-
     /**
-     * Used to make a duplicate of the current position, Use this when you want to convert a position without changing it
-     * @return Duplicate of the same position
+     * Converts current position to World coordinates, except Screen position
+     * @throws IllegalMethodUsage If converting from Screen coordinates
+     * @return This position instance for chaining
      */
-    @Override
-    public Position copy(){
-        return new Position(this.x(), this.y(), this.getSystem());
-    }
-
-    /**
-     * Stops any method from returning the current position object.
-     */
-    public void noReturn(){
-        // This method is used when you finish converting without needing to put the new value in a new variable
-    }
-
     public Position toWorld() throws IllegalMethodUsage {
         switch (getSystem()) {
             case W_WORLD:
@@ -151,11 +171,10 @@ public class Position implements Returnable<Position> {
     }
 
     /**
-     * This method is only used to convert screen position to world position, if you're converting another
-     * position type please use the other toWorld method
-     * @param camera world camera
-     * @return A world position
-     * @throws IllegalMethodUsage thrown when the method is used for purposes that it shouldn't perform
+     * Converts Screen coordinates to World coordinates
+     * @param camera Camera for coordinate transformation
+     * @return This position instance for chaining
+     * @throws IllegalMethodUsage If not converting from Screen coordinates
      */
     public Position toWorld(AdvCamera2D camera) throws IllegalMethodUsage {
         if (getSystem().equals(W_SCREEN)) {
@@ -169,6 +188,11 @@ public class Position implements Returnable<Position> {
         throw new IllegalMethodUsage(method, system);
     }
 
+    /**
+     * Converts current position to Tile coordinates, except Screen position
+     * @throws IllegalMethodUsage If converting from Screen coordinates
+     * @return This position instance for chaining
+     */
     public Position toTile() throws IllegalMethodUsage {
         switch (getSystem()) {
             case W_TILE:
@@ -194,11 +218,10 @@ public class Position implements Returnable<Position> {
     }
 
     /**
-     * This method is only used to convert screen position to tile position, if you're converting another
-     * position type please use the other toTile method
-     * @param camera The game rendering camera
-     * @return A Tile position of the screen position
-     * @throws IllegalMethodUsage Thrown when using the wrong positioning system
+     * Converts Screen coordinates to Tile coordinates
+     * @param camera Camera for coordinate transformation
+     * @return This position instance for chaining
+     * @throws IllegalMethodUsage If not converting from Screen coordinates
      */
     public Position toTile(AdvCamera2D camera) throws IllegalMethodUsage {
         if (getSystem().equals(W_SCREEN)) {
@@ -212,6 +235,11 @@ public class Position implements Returnable<Position> {
         throw new IllegalMethodUsage(method, "converting ONLY screen positions to chunk positions");
     }
 
+    /**
+     * Converts current position to Chunk coordinates, except Screen position
+     * @throws IllegalMethodUsage If converting from Screen coordinates
+     * @return This position instance for chaining
+     */
     public Position toChunk() throws IllegalMethodUsage {
         switch (getSystem()) {
             case W_CHUNK:
@@ -237,11 +265,10 @@ public class Position implements Returnable<Position> {
     }
 
     /**
-     * This method is only used to convert screen position to chunk position, if you're converting another
-     * position type please use the other toChunk method
-     * @param camera The game rendering camera
-     * @return A chunk position of the screen position
-     * @throws IllegalMethodUsage
+     * Converts Screen coordinates to Chunk coordinates
+     * @param camera Camera for coordinate transformation
+     * @return This position instance for chaining
+     * @throws IllegalMethodUsage If not converting from Screen coordinates
      */
     public Position toChunk(AdvCamera2D camera) throws IllegalMethodUsage {
         if (getSystem().equals(W_SCREEN)) {
@@ -256,9 +283,19 @@ public class Position implements Returnable<Position> {
     }
     // ----------------------------------------------------------
 
-
+    // Overrides:
     @Override
     public String toString() {
         return vector.x() + ":" + vector.y();
     }
+
+    /**
+     * Creates a deep copy of this position
+     * @return New Position instance with identical coordinates and system
+     */
+    @Override
+    public Position copy(){
+        return new Position(this.x(), this.y(), this.getSystem());
+    }
+    // ----------------------------------------------------------
 }

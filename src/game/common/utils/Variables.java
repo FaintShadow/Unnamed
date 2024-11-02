@@ -3,6 +3,7 @@ package game.common.utils;
 import game.core.engine.texture.Manager;
 
 public class Variables {
+    public static final String GAME_TITLE = "Unnamed";
     public static final String W_RESET = "reset";
     public static final String W_PAUSE = "pause";
 

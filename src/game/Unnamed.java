@@ -7,13 +7,10 @@ import game.core.world.type.BaseWorld;
 import game.exceptions.ChunkGenerationException;
 import game.exceptions.IllegalMethodUsage;
 import game.exceptions.InvalidIdentifierFormat;
-import game.generation.noise.Perlin1D;
-import game.core.world.ecosystem.organisms.Entity;
 import game.core.world.ecosystem.organisms.Player;
 import game.core.engine.camera.AdvCamera2D;
 import com.raylib.Jaylib;
 import com.raylib.Jaylib.Rectangle;
-import game.core.world.type.OverWorld;
 
 import static com.raylib.Jaylib.*;
 import static game.common.utils.Variables.*;
@@ -57,16 +54,15 @@ public class Unnamed {
         camera.zoom(3);
     }
 
-    public static void main(String[] args) throws InvalidIdentifierFormat, IllegalMethodUsage, ChunkGenerationException {
-        // Init Window:
-        InitWindow(GAMEWIDTH, GAMEHEIGHT, "Unnamed");
+    public static void main(String[] args) throws IllegalMethodUsage, ChunkGenerationException {
+        // Init:
+        InitWindow(GAMEWIDTH, GAMEHEIGHT, GAME_TITLE);
 
-        // Init Overworld:
         BaseWorld overWorld = new BaseWorld();
         Position spawnPosition = new Position(0, 0, W_WORLD);
-        initPlayers(spawnPosition);
-
         AdvCamera2D camera = new AdvCamera2D();
+
+        initPlayers(spawnPosition);
         setCameraProps(camera);
         // =========================================================================
         // Game Loop:

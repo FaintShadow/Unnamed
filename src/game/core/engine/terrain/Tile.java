@@ -1,13 +1,13 @@
 package game.core.engine.terrain;
 
 import com.raylib.Jaylib;
+import game.common.interfaces.Returnable;
 import game.core.engine.common.Identifier;
 import game.core.engine.position.Position;
 
-public class Tile {
+public class Tile implements Returnable<Tile> {
     private Identifier<Integer, Integer> identifier;
     private Position position;
-    private Jaylib.Color color;
     private Boolean collision;
 
     public Tile(){}
@@ -37,20 +37,17 @@ public class Tile {
         return this;
     }
 
-    public Jaylib.Color getColor() {
-        return color;
-    }
-
-    public void setColor(Jaylib.Color color) {
-        this.color = color;
-    }
-
     public Boolean getCollision() {
         return collision;
     }
 
     public void setCollision(Boolean collision) {
         this.collision = collision;
+    }
+
+    @Override
+    public Tile copy() {
+        return new Tile(identifier, position, collision);
     }
 
     // ----------------------------------------------------------------------

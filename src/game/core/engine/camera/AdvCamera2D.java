@@ -15,24 +15,43 @@ import java.util.Map;
 import static com.raylib.Raylib.IsKeyDown;
 import static game.common.utils.Variables.*;
 
+/**
+ * Advanced 2D camera system that extends Raylib's Camera2D with additional
+ * features for entity tracking, smooth following, and boundary management.
+ */
 public class AdvCamera2D extends Raylib.Camera2D implements Controllable<String, Integer> {
     private final Map<String, Integer> controls = new HashMap<>();
 
     private Position targetPosition = new Position();
 
+    /**
+     * @return The current control key mappings
+     */
     public Map<String, Integer> getControls() {
         return controls;
     }
 
+    /**
+     * @return The current target position of the camera
+     */
     public Position getTargetPosition() {
         return targetPosition;
     }
 
+    /**
+     * Sets the target position for the camera
+     * @param pos The new target position
+     */
     public void setTargetPosition(Position pos) {
         this.targetPosition = pos;
     }
 
-    // Camera Target Vector:
+    /**
+     * Calculates and updates the camera target vector based on nearby entities.
+     * Only considers entities within 400 units of the current target position.
+     *
+     * @param el List of entities to consider for target calculation
+     */
     public void cTV(List<? extends Entity> el) {
         float totX = 0;
         float totY = 0;
@@ -54,24 +73,34 @@ public class AdvCamera2D extends Raylib.Camera2D implements Controllable<String,
         this.targetPosition.y(avgY);
     }
 
-    // Single U? Camera Center:
-    public void sUCC(int width, int height, Entity entity) {
+    // Single Position Camera Center
+    /**
+     * Centers the camera on a single entity.
+     *
+     * @param width Game width
+     * @param height Game height
+     * @param entity The entity to center on
+     */
+    public void sPCC(int width, int height, Entity entity) {
         super.offset(new Jaylib.Vector2(width / 2.0F, height / 2.0F));
         super.target(entity.getPosition().getVector2());
     }
 
-    // Single U? Camera Center:
-    public void mUCC(int width, int height) {
-        super.offset(new Jaylib.Vector2(width / 2.0F, height / 2.0F));
-        super.target(targetPosition.getVector2());
-    }
-
-    // Single U? Camera Center Smooth Follow
-    public static void sUCCSF(AdvCamera2D camera, Entity entity, int width, int height, float delta) {
+    // Single Position Camera Center Smooth Follow
+    /**
+     * Implements smooth following behavior for a single position.
+     * Uses minimum speed and distance thresholds for smooth movement.
+     *
+     * @param camera The camera instance
+     * @param entity The entity to follow
+     * @param width Game width
+     * @param height Game height
+     * @param delta Time elapsed since last frame
+     */
+    public static void sPCCSF(AdvCamera2D camera, Entity entity, int width, int height, float delta) {
         float minSPD = 30.0F;
         float minEffLength = 10.0F;
         float fractionSPD = 0.8F;
-        //camera.offset(new Jaylib.Vector2((width / 2), (height / 2)));
         camera.offset().x(Math.floorMod(width, 2));
         camera.offset().y(Math.floorMod(height, 2));
         Raylib.Vector2 difference = Raylib.Vector2Subtract(entity.getPosition().getVector2(), camera.target());
@@ -83,14 +112,23 @@ public class AdvCamera2D extends Raylib.Camera2D implements Controllable<String,
 
     }
 
-    // Multi U? Camera Center Smooth Follow:
-    public static void mUCCSF(AdvCamera2D camera, int width, int height, float delta) {
+    // Multi Position Camera Center Smooth Follow:
+    /**
+     * Implements smooth following behavior for multiple entities.
+     * Uses minimum speed and distance thresholds for smooth movement.
+     *
+     * @param camera The camera instance
+     * @param width Game width
+     * @param height Game height
+     * @param delta Time elapsed since last frame
+     */
+    public static void mPCCSF(AdvCamera2D camera, int width, int height, float delta) {
         float minSPD = 30.0F;
         float minEffLength = 10.0F;
         float fractionSPD = 0.8F;
 
-        camera.offset().x(width / 2);
-        camera.offset().y(height / 2);
+        camera.offset().x((float)(width) / 2);
+        camera.offset().y((float)(height) / 2);
         Raylib.Vector2 difference = Raylib.Vector2Subtract(camera.targetPosition.getVector2(), camera.target());
 
         float length = Raylib.Vector2Length(difference);
@@ -101,8 +139,18 @@ public class AdvCamera2D extends Raylib.Camera2D implements Controllable<String,
 
     }
 
-    // Multi ? Camera Center
-    public static void mUCCIM(AdvCamera2D camera, List<Tile> tiles, int width, int height, float delta) {
+    // Multi Position Camera Center With Boundary
+    /**
+     * Implements improved multi-entity camera centering with tile boundary constraints.
+     * Prevents the camera from showing areas outside the tile boundaries.
+     *
+     * @param camera The camera instance
+     * @param tiles List of tiles defining the boundary
+     * @param width Game width
+     * @param height Game height
+     * @param delta Time elapsed since last frame
+     */
+    public static void mPCCWB(AdvCamera2D camera, List<Tile> tiles, int width, int height, float delta) {
         float minSPD = 30.0F;
         float minEffLength = 10.0F;
         float fractionSPD = 0.8F;
@@ -151,6 +199,11 @@ public class AdvCamera2D extends Raylib.Camera2D implements Controllable<String,
 
     }
 
+    /**
+     * Handles keyboard input for manual camera control.
+     *
+     * @param delta Time elapsed since last frame
+     */
     public void cameraController(float delta) {
         int cspd = 300;
         int cuspd = 300;
@@ -170,90 +223,32 @@ public class AdvCamera2D extends Raylib.Camera2D implements Controllable<String,
     }
 
     /**
-     * Get the XY of the screen's corners
+     * Get the XY of the screen's corners<br>
+     * Corner mapping:
      * <table>
      *     <tr>
-     *         <th>Corner</th>
-     *         <th>Id</th>
+     *         <th></th>
+     *         <th>Left</th>
+     *         <th>Right</th>
      *     </tr>
      *     <tr>
-     *         <td>Top left</td>
+     *         <td>Top</td>
      *         <td>1</td>
-     *     </tr>
-     *     <tr>
-     *         <td>Top right</td>
      *         <td>2</td>
      *     </tr>
      *     <tr>
-     *         <td>Bottom left</td>
-     *         <td>3</td>
-     *     </tr>
-     *     <tr>
-     *         <td>Bottom right</td>
+     *         <td>Bottom</td>
      *         <td>4</td>
+     *         <td>3</td>
      *     </tr>
      * </table>
      *
-     * @param corner The id of the screen corner you want.
-     * @param vector The vector in which the XY position of the corner will be set.
+     * @param corner Corner identifier (1-4)
+     * @return Position in world coordinates
+     * @throws IllegalArgumentException if corner identifier is invalid
+     * @throws IllegalMethodUsage if method usage is incorrect
      */
-    /*public void getCorner(int corner, Position vector) {
-
-        //  X = (Game.camera.target.x -/+ ( Game.camera.offset.x / 3 ))
-        //  Y = (Game.camera.target.x -/+ ( Game.camera.offset.y / 3 ))
-        //
-        // ((target().x() - (offset().x() / zoom())), (target().y() - (offset().y() / zoom())))
-
-        switch (corner) {
-            case 1:
-                vector.x(this.target().x() - (this.offset().x() / zoom()));
-                vector.y(this.target().y() - (this.offset().y() / zoom()));
-                break;
-            case 2:
-                vector.x(this.target().x() + (this.offset().x() / zoom()));
-                vector.y(this.target().y() - (this.offset().y() / zoom()));
-                break;
-            case 3:
-                vector.x(this.target().x() - (this.offset().x() / zoom()));
-                vector.y(this.target().y() + (this.offset().y() / zoom()));
-                break;
-            case 4:
-                vector.x(this.target().x() + (this.offset().x() / zoom()));
-                vector.y(this.target().y() + (this.offset().y() / zoom()));
-                break;
-            default:
-                break;
-        }
-    }*/
-
-    /**
-     * Get the XY of the screen's corners
-     * <table>
-     *     <tr>
-     *         <th>Corner</th>
-     *         <th>Id</th>
-     *     </tr>
-     *     <tr>
-     *         <td>Top left</td>
-     *         <td>1</td>
-     *     </tr>
-     *     <tr>
-     *         <td>Top right</td>
-     *         <td>2</td>
-     *     </tr>
-     *     <tr>
-     *         <td>Bottom right</td>
-     *         <td>3</td>
-     *     </tr>
-     *     <tr>
-     *         <td>Bottom left</td>
-     *         <td>4</td>
-     *     </tr>
-     * </table>
-     *
-     * @param corner The id of the screen corner you want.
-     */
-    public Position getScreenCornerWorldPosition(int corner) throws IllegalMethodUsage {
+    public Position getScreenCornerWorldPosition(int corner) throws IllegalMethodUsage, IllegalArgumentException {
         return switch (corner) {
             case 1 -> new Position(0, 0, W_SCREEN).toWorld(this);
             case 2 -> new Position(GAMEWIDTH, 0, W_SCREEN).toWorld(this);
@@ -263,6 +258,12 @@ public class AdvCamera2D extends Raylib.Camera2D implements Controllable<String,
         };
     }
 
+    /**
+     * Adds a new control key binding.
+     *
+     * @param name The name of the control
+     * @param key The key code to bind
+     */
     @Override
     public void addControls(String name, Integer key) {
         controls.put(name, key);
