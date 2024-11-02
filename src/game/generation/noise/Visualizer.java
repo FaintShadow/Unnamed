@@ -12,7 +12,7 @@ import static game.core.world.type.BaseWorld.TILESCALEDSIZE;
 
 public class Visualizer {
 
-    private static Perlin1D perlinNoise = new Perlin1D(0.5, 8);
+    private static final Perlin1D perlinNoise = new Perlin1D(0.5, 8);
 
     public static void drawPerlinPoints(){
         double graphX = 0;
@@ -30,16 +30,13 @@ public class Visualizer {
         }
     }
 
-    public static void main(String[] args) throws IllegalMethodUsage, NoSuchMethodException {
+    public static void main(String[] args) throws IllegalMethodUsage {
         InitWindow(GAMEWIDTH, GAMEHEIGHT, "Unnamed - Perlin Noise Visualizer");
         AdvCamera2D camera = new AdvCamera2D();
         camera.target(new Jaylib.Vector2(0, 0));
         camera.offset(new Jaylib.Vector2((float) GAMEWIDTH / 2, (float) GAMEHEIGHT / 2));
         camera.rotation(0);
         camera.zoom(1);
-
-        Position tilepos = new Position(0, 0, W_TILE);
-        Position temp = tilepos.toTile();
 
         while (!WindowShouldClose()) {
             float deltaTime = GetFrameTime();
@@ -49,10 +46,10 @@ public class Visualizer {
             BeginMode2D(camera);
 
             if (IsKeyDown(KEY_KP_ADD)){
-                camera.zoom((float) (camera.zoom() + (1 * deltaTime)));
+                camera.zoom(camera.zoom() + (1 * deltaTime));
             }
             if (IsKeyDown(KEY_KP_SUBTRACT)){
-                camera.zoom((float) (camera.zoom() - (1 * deltaTime)));
+                camera.zoom(camera.zoom() - (1 * deltaTime));
             }
 
             drawPerlinPoints();

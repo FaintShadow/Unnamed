@@ -1,6 +1,5 @@
 package game.core.engine.terrain;
 
-import com.raylib.Jaylib;
 import game.common.interfaces.Returnable;
 import game.core.engine.common.Identifier;
 import game.core.engine.position.Position;

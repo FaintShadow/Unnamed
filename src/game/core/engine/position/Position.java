@@ -2,6 +2,7 @@ package game.core.engine.position;
 
 import com.raylib.Jaylib;
 import com.raylib.Raylib;
+import game.common.utils.Variables;
 import game.core.engine.camera.AdvCamera2D;
 import game.core.engine.common.Identifier;
 import game.common.interfaces.Returnable;
@@ -46,7 +47,7 @@ public class Position implements Returnable<Position> {
         this.vector.y(y);
         this.system = system;
 
-        if (!Arrays.asList(POSITIONSYSTEMS).contains(system)) {
+        if (!Arrays.asList(Variables.getPositionSystems()).contains(system)) {
             throw new IllegalPositioningSystemArgument(system);
         }
     }
@@ -63,7 +64,7 @@ public class Position implements Returnable<Position> {
         this.vector.y(pos.getChild());
         this.system = system;
 
-        if (!Arrays.asList(POSITIONSYSTEMS).contains(system)) {
+        if (!Arrays.asList(Variables.getPositionSystems()).contains(system)) {
             throw new IllegalPositioningSystemArgument(system);
         }
     }
@@ -90,7 +91,7 @@ public class Position implements Returnable<Position> {
     }
 
     public Position setSystem(String system) {
-        if (!Arrays.asList(POSITIONSYSTEMS).contains(system)) {
+        if (!Arrays.asList(Variables.getPositionSystems()).contains(system)) {
             throw new IllegalPositioningSystemArgument(system);
         }
         this.system = system;

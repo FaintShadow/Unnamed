@@ -1,8 +1,6 @@
 package game.core.world.type;
 
-import com.raylib.Raylib;
 import game.core.engine.position.Position;
-import game.exceptions.ChunkGenerationException;
 import game.exceptions.IllegalMethodUsage;
 import game.common.interfaces.Chunkable;
 import game.core.engine.terrain.Chunk;
@@ -10,9 +8,7 @@ import game.core.engine.terrain.Tile;
 import game.core.engine.camera.AdvCamera2D;
 import game.generation.noise.Perlin1D;
 
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static com.raylib.Jaylib.*;
@@ -25,7 +21,6 @@ public class BaseWorld implements Chunkable<Chunk> {
     public static final int TILESCALEDSIZE = TILESIZE * WORLDSCALE;
     private Perlin1D perlinNoise = new Perlin1D(0.5, 8);
     HashMap<String, Chunk> map = new HashMap<>();
-    private final List<Raylib.Color> listC = Arrays.asList(GREEN, RED, PINK, BLACK);
 
 
     public void renderChunks(AdvCamera2D camera) throws IllegalMethodUsage {
@@ -51,16 +46,20 @@ public class BaseWorld implements Chunkable<Chunk> {
         }
     }
 
-    public void generateChunks(AdvCamera2D camera) throws IllegalMethodUsage, ChunkGenerationException {
+    public void generateChunks(AdvCamera2D camera) {
         // cc: count visible chunks
         int ccY = (int) ((GAMEHEIGHT * (2 / camera.zoom())) / (CHUNKSIZE * TILESCALEDSIZE)) + 1;
         int ccX = (int) ((GAMEWIDTH * (3 / camera.zoom())) / (CHUNKSIZE * TILESCALEDSIZE)) - 1;
-        Position cornerChunk = camera.getScreenCornerWorldPosition(1).copy().toChunk();
-        for (int y = 0; y < ccY; y++) {
-            for (int x = 0; x < ccX; x++) {
-                Position currentChunk = new Position(cornerChunk.x() + x, cornerChunk.y() + y, W_CHUNK);
-                map.put(currentChunk.toString(), generateChunk(currentChunk));
+        try {
+            Position cornerChunk = camera.getScreenCornerWorldPosition(1).copy().toChunk();
+            for (int y = 0; y < ccY; y++) {
+                for (int x = 0; x < ccX; x++) {
+                    Position currentChunk = new Position(cornerChunk.x() + x, cornerChunk.y() + y, W_CHUNK);
+                    map.put(currentChunk.toString(), generateChunk(currentChunk));
+                }
             }
+        } catch (IllegalMethodUsage e) {
+            throw new RuntimeException(e);
         }
     }
 

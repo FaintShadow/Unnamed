@@ -25,7 +25,7 @@ public class Variables {
     public static final String W_CHUNK = "Chunk";
     public static final String W_WORLD = "World";
     public static final String W_SCREEN = "Screen";
-    public static final String[] POSITIONSYSTEMS = new String[]{
+    protected static final String[] POSITIONSYSTEMS = new String[]{
             W_TILE,
             W_CHUNK,
             W_WORLD,
@@ -41,4 +41,7 @@ public class Variables {
     public static final Manager TileTextureManager = new Manager("../engine/textures/assets/tiles.png", 16);
 
     private Variables(){}
+    public static String[] getPositionSystems(){
+        return POSITIONSYSTEMS;
+    }
 }

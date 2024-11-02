@@ -40,7 +40,7 @@ public class Identifier<P, C> {
      * Main constructor that all other constructors delegate to
      */
     public Identifier(P parent, C child, String separator) throws InvalidIdentifierFormat {
-        validateNotNull(parent, "Parent");
+        validateNotNull(parent);
         validateSeparator(separator);
 
         this.separator = separator;
@@ -56,7 +56,7 @@ public class Identifier<P, C> {
      * @throws IllegalArgumentException if parent is null
      */
     public void set(P parent, C child) throws InvalidIdentifierFormat {
-        validateNotNull(parent, "Parent");
+        validateNotNull(parent);
         validateNotContainsSeparator(parent);
         if (child != null) {
             validateNotContainsSeparator(child);
@@ -71,7 +71,7 @@ public class Identifier<P, C> {
     }
 
     public void setParent(P parent) throws InvalidIdentifierFormat {
-        validateNotNull(parent, "Parent");
+        validateNotNull(parent);
         validateNotContainsSeparator(parent);
         this.parent = parent;
     }
@@ -104,9 +104,9 @@ public class Identifier<P, C> {
         }
     }
 
-    private void validateNotNull(Object value, String fieldName) {
+    private void validateNotNull(Object value) {
         if (value == null) {
-            throw new IllegalArgumentException(fieldName + " cannot be null");
+            throw new IllegalArgumentException("Parent cannot be null");
         }
     }
 

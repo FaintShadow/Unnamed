@@ -54,7 +54,7 @@ public class Perlin1D {
             amplitude *= persistence;
         }
 
-        return total / maxValue;
+        return maxValue == 0 ? 0 : total / maxValue;
     }
 
     public double getIncremental() {

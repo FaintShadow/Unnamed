@@ -5,7 +5,7 @@ package game.common.interfaces;
  * Methods returning void are designed to return the implementing class instance (this) instead.
  * @param <T> The type of the implementing class
  */
-interface Returnable<T> {
+public interface Returnable<T> {
     default void noReturn(){}
     T copy();
 }
