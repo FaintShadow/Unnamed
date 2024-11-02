@@ -2,21 +2,22 @@ package game;
 
 import java.util.*;
 
-import game.engine.Position;
-import game.utilities.concerns.IllegalMethodUsage;
-import game.engine.concerns.InvalidIdentifierFormat;
-import game.engine.noise.Perlin1D;
-import game.world.ecosystem.organisms.Entity;
-import game.world.ecosystem.organisms.Player;
-import game.engine.AdvancedCamera2D;
+import game.core.engine.position.Position;
+import game.core.world.type.BaseWorld;
+import game.exceptions.ChunkGenerationException;
+import game.exceptions.IllegalMethodUsage;
+import game.exceptions.InvalidIdentifierFormat;
+import game.generation.noise.Perlin1D;
+import game.core.world.ecosystem.organisms.Entity;
+import game.core.world.ecosystem.organisms.Player;
+import game.core.engine.camera.AdvCamera2D;
 import com.raylib.Jaylib;
 import com.raylib.Jaylib.Rectangle;
-import game.world.type.OverWorld;
-import org.jetbrains.annotations.NotNull;
+import game.core.world.type.OverWorld;
 
 import static com.raylib.Jaylib.*;
-import static game.utilities.Variables.*;
-import static game.world.type.BaseWorld.*;
+import static game.common.utils.Variables.*;
+import static game.core.world.type.BaseWorld.*;
 
 public class Unnamed {
 
@@ -48,50 +49,29 @@ public class Unnamed {
         player.addControls(W_RESET, KEY_R);
     }
 
-    public static void setCameraProps(@NotNull AdvancedCamera2D camera) {
+    public static void setCameraProps(AdvCamera2D camera) {
         camera.cTV(playerList);
         camera.target(camera.getTargetPosition().getVector2());
         camera.offset(new Jaylib.Vector2((float) GAMEWIDTH / 2, (float) GAMEHEIGHT / 2));
         camera.rotation(0);
-        camera.zoom(1);
+        camera.zoom(3);
     }
 
-    public static Position getSpawnPoint(int randomX, @NotNull Perlin1D noise) throws IllegalMethodUsage {
-        double height = noise.getHeight(noise.getIncremental() * ((double) randomX / TILESCALEDSIZE));
-        return new Position(randomX, (int) (height * 256), W_TILE).toWorld();
-    }
-
-    public static void main(String[] args) throws InvalidIdentifierFormat, IllegalMethodUsage {
+    public static void main(String[] args) throws InvalidIdentifierFormat, IllegalMethodUsage, ChunkGenerationException {
         // Init Window:
         InitWindow(GAMEWIDTH, GAMEHEIGHT, "Unnamed");
 
         // Init Overworld:
-        int spawnX = new java.util.Random().nextInt();
-
-        OverWorld overWorld = new OverWorld();
-
-        Position spawnPosition = getSpawnPoint(spawnX, overWorld.getPerlinNoise());
-
+        BaseWorld overWorld = new BaseWorld();
+        Position spawnPosition = new Position(0, 0, W_WORLD);
         initPlayers(spawnPosition);
 
-        AdvancedCamera2D camera = new AdvancedCamera2D();
+        AdvCamera2D camera = new AdvCamera2D();
         setCameraProps(camera);
         // =========================================================================
-
         // Game Loop:
         while (!WindowShouldClose()) {
-            float deltaTime = GetFrameTime();
 
-            camera.cTV(playerList);
-            camera.sUCC(GAMEWIDTH, GAMEHEIGHT, playerList.getFirst());
-
-            for (Entity entity : playerList) {
-                if (IsKeyPressed(entity.getControls().get(W_RESET))) {
-                    entity.getPosition().x(400);
-                    entity.getPosition().y(280);
-                    entity.setsPD(0);
-                }
-            }
 
             if (IsKeyDown(KEY_KP_ADD)) {
                 camera.zoom(camera.zoom() + 0.04f);
@@ -109,13 +89,11 @@ public class Unnamed {
             ClearBackground(WHITE);
             BeginMode2D(camera);
 
+            overWorld.generateChunks(camera);
             overWorld.renderChunks(camera);
-
-            playerList.forEach(player -> DrawRectangleRec(player.getRect(), RED));
 
             EndMode2D();
             EndDrawing();
-            playerList.forEach(player -> player.updatePosition(deltaTime));
         }
         CloseWindow();
     }
