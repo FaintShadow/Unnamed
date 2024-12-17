@@ -1,12 +1,18 @@
 package game.generation.noise;
 
+import static com.raylib.Raylib.GetRandomValue;
+
+/**
+ * Perlin noise generator for 1D terrain generation.
+ * @author FaintShadow
+ */
 public class Perlin1D {
     private final double persistence;
     private final int octaves;
     private final int seed;
-    private double incremental = 0.0005;
+    private double incremental = 0.0007;
 
-    private static final int DEFAULT_SEED = 42;
+    private static final int DEFAULT_SEED = GetRandomValue(41, 999999999);
 
     public Perlin1D(double persistence, int octaves) {
         this(persistence, octaves, DEFAULT_SEED);
@@ -54,7 +60,7 @@ public class Perlin1D {
             amplitude *= persistence;
         }
 
-        return maxValue == 0 ? 0 : total / maxValue;
+        return total / maxValue;
     }
 
     public double getIncremental() {

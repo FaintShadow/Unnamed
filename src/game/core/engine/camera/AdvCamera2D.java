@@ -8,11 +8,12 @@ import game.core.world.ecosystem.organisms.Entity;
 import com.raylib.Jaylib;
 import com.raylib.Raylib;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.raylib.Raylib.IsKeyDown;
+import static com.raylib.Raylib.*;
 import static game.common.utils.Variables.*;
 
 /**
@@ -21,29 +22,16 @@ import static game.common.utils.Variables.*;
  */
 public class AdvCamera2D extends Raylib.Camera2D implements Controllable<String, Integer> {
     private final Map<String, Integer> controls = new HashMap<>();
+    private Position target = new Position();
 
-    private Position targetPosition = new Position();
-
-    /**
-     * @return The current control key mappings
-     */
     public Map<String, Integer> getControls() {
         return controls;
     }
-
-    /**
-     * @return The current target position of the camera
-     */
     public Position getTargetPosition() {
-        return targetPosition;
+        return target;
     }
-
-    /**
-     * Sets the target position for the camera
-     * @param pos The new target position
-     */
     public void setTargetPosition(Position pos) {
-        this.targetPosition = pos;
+        this.target = pos;
     }
 
     /**
@@ -59,7 +47,7 @@ public class AdvCamera2D extends Raylib.Camera2D implements Controllable<String,
         int i = 0;
 
         for (Entity E : el) {
-            if (Raylib.Vector2Distance(E.getPosition().getVector2(), this.targetPosition.getVector2()) < ignoreDistance) {
+            if (Raylib.Vector2Distance(E.getPosition().getVector2(), this.target.getVector2()) < ignoreDistance) {
                 totX += E.getPosition().x();
                 totY += E.getPosition().y();
                 ++i;
@@ -69,13 +57,12 @@ public class AdvCamera2D extends Raylib.Camera2D implements Controllable<String,
         int avgX = Math.divideExact((int) totX, i);
         int avgY = Math.divideExact((int) totY, i);
 
-        this.targetPosition.x(avgX);
-        this.targetPosition.y(avgY);
+        this.target.x(avgX);
+        this.target.y(avgY);
     }
 
-    // Single Position Camera Center
     /**
-     * Centers the camera on a single entity.
+     * Centers the camera on a single position.
      *
      * @param width Game width
      * @param height Game height
@@ -86,9 +73,8 @@ public class AdvCamera2D extends Raylib.Camera2D implements Controllable<String,
         super.target(entity.getPosition().getVector2());
     }
 
-    // Single Position Camera Center Smooth Follow
     /**
-     * Implements smooth following behavior for a single position.
+     * Smooth following behavior for a single position.
      * Uses minimum speed and distance thresholds for smooth movement.
      *
      * @param camera The camera instance
@@ -109,12 +95,11 @@ public class AdvCamera2D extends Raylib.Camera2D implements Controllable<String,
             float speed = Math.max(fractionSPD * length, minSPD);
             camera.target(Raylib.Vector2Add(camera.target(), Raylib.Vector2Scale(difference, speed * delta / length)));
         }
-
     }
 
     // Multi Position Camera Center Smooth Follow:
     /**
-     * Implements smooth following behavior for multiple entities.
+     * Smooth following behavior for multiple positions.
      * Uses minimum speed and distance thresholds for smooth movement.
      *
      * @param camera The camera instance
@@ -129,7 +114,7 @@ public class AdvCamera2D extends Raylib.Camera2D implements Controllable<String,
 
         camera.offset().x((float)(width) / 2);
         camera.offset().y((float)(height) / 2);
-        Raylib.Vector2 difference = Raylib.Vector2Subtract(camera.targetPosition.getVector2(), camera.target());
+        Raylib.Vector2 difference = Raylib.Vector2Subtract(camera.target.getVector2(), camera.target());
 
         float length = Raylib.Vector2Length(difference);
         if (length > minEffLength) {
@@ -139,9 +124,8 @@ public class AdvCamera2D extends Raylib.Camera2D implements Controllable<String,
 
     }
 
-    // Multi Position Camera Center With Boundary
     /**
-     * Implements improved multi-entity camera centering with tile boundary constraints.
+     * Multi-position camera centering with tile boundary constraints.
      * Prevents the camera from showing areas outside the tile boundaries.
      *
      * @param camera The camera instance
@@ -155,9 +139,9 @@ public class AdvCamera2D extends Raylib.Camera2D implements Controllable<String,
         float minEffLength = 10.0F;
         float fractionSPD = 0.8F;
 
-        camera.offset().x((width / 2));
-        camera.offset().y((height / 2));
-        Raylib.Vector2 difference = Raylib.Vector2Subtract(camera.targetPosition.getVector2(), camera.target());
+        camera.offset().x(((float) width / 2));
+        camera.offset().y(((float) height / 2));
+        Raylib.Vector2 difference = Raylib.Vector2Subtract(camera.target.getVector2(), camera.target());
 
         float length = Raylib.Vector2Length(difference);
         float minX;
@@ -205,20 +189,45 @@ public class AdvCamera2D extends Raylib.Camera2D implements Controllable<String,
      * @param delta Time elapsed since last frame
      */
     public void cameraController(float delta) {
-        int cspd = 300;
-        int cuspd = 300;
+        // Base camera speed (pixels per second)
+        float baseSpeed = 300f;
+
+        // Adjust speed to be independent of zoom
+        float adjustedSpeed = baseSpeed / zoom();
 
         if (IsKeyDown(controls.get(W_LEFT))) {
-            targetPosition.x((int) (targetPosition.x() - (cspd * delta)));
+            target().x((int) (target().x() - (adjustedSpeed * delta)));
         }
         if (IsKeyDown(controls.get(W_RIGHT))) {
-            targetPosition.x((int) (targetPosition.x() + (cspd * delta)));
+            target().x((int) (target().x() + (adjustedSpeed * delta)));
         }
         if (IsKeyDown(controls.get(W_UP))) {
-            targetPosition.y((int) (targetPosition.y() - (cuspd * delta)));
+            target().y((int) (target().y() - (adjustedSpeed * delta)));
         }
         if (IsKeyDown(controls.get(W_DOWN))) {
-            targetPosition.y((int) (targetPosition.y() + (cuspd * delta)));
+            target().y((int) (target().y() + (adjustedSpeed * delta)));
+        }
+    }
+
+    /**
+     * Default control key mappings for camera movement.
+     */
+    @Override
+    public void defaultControls() {
+        List<String> keys = new ArrayList<>();
+        keys.add(W_LEFT);
+        keys.add(W_RIGHT);
+        keys.add(W_UP);
+        keys.add(W_DOWN);
+
+        List<Integer> maps = new ArrayList<>();
+        maps.add(KEY_LEFT);
+        maps.add(KEY_RIGHT);
+        maps.add(KEY_UP);
+        maps.add(KEY_DOWN);
+
+        for(String key : keys) {
+            controls.computeIfAbsent(key, k -> maps.get(keys.indexOf(key)));
         }
     }
 
@@ -265,7 +274,7 @@ public class AdvCamera2D extends Raylib.Camera2D implements Controllable<String,
      * @param key The key code to bind
      */
     @Override
-    public void addControls(String name, Integer key) {
+    public void addControl(String name, Integer key) {
         controls.put(name, key);
     }
 }

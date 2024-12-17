@@ -2,10 +2,9 @@ package game.core.engine.position;
 
 import com.raylib.Jaylib;
 import com.raylib.Raylib;
-import game.common.utils.Variables;
 import game.core.engine.camera.AdvCamera2D;
 import game.core.engine.common.Identifier;
-import game.common.interfaces.Returnable;
+import game.common.interfaces.Chainable;
 import game.common.utils.Utils;
 import game.exceptions.IllegalMethodUsage;
 import game.exceptions.IllegalPositioningSystemArgument;
@@ -17,8 +16,8 @@ import static com.raylib.Raylib.GetScreenToWorld2D;
 import static game.common.utils.Variables.*;
 import static game.core.world.type.BaseWorld.TILESIZE;
 
-public class Position implements Returnable<Position> {
-    private Jaylib.Vector2 vector = new Jaylib.Vector2();
+public class Position implements Chainable<Position> {
+    private final Jaylib.Vector2 vector = new Jaylib.Vector2();
     private String system;
 
     public Position() {}
@@ -47,7 +46,7 @@ public class Position implements Returnable<Position> {
         this.vector.y(y);
         this.system = system;
 
-        if (!Arrays.asList(Variables.getPositionSystems()).contains(system)) {
+        if (!Arrays.asList(getPositionSystems()).contains(system)) {
             throw new IllegalPositioningSystemArgument(system);
         }
     }
@@ -60,11 +59,11 @@ public class Position implements Returnable<Position> {
      * @throws IllegalPositioningSystemArgument If the system is not recognized
      */
     public Position(Identifier<Integer, Integer> pos, String system) throws IllegalPositioningSystemArgument {
-        this.vector.x(pos.getParent());
-        this.vector.y(pos.getChild());
+        this.vector.x(pos.getParent().orElseThrow(() -> new RuntimeException("Parent is empty")));
+        this.vector.y((pos.getChild().orElseThrow(() -> new RuntimeException("Child is empty"))));
         this.system = system;
 
-        if (!Arrays.asList(Variables.getPositionSystems()).contains(system)) {
+        if (!Arrays.asList(getPositionSystems()).contains(system)) {
             throw new IllegalPositioningSystemArgument(system);
         }
     }
@@ -91,7 +90,7 @@ public class Position implements Returnable<Position> {
     }
 
     public Position setSystem(String system) {
-        if (!Arrays.asList(Variables.getPositionSystems()).contains(system)) {
+        if (!Arrays.asList(getPositionSystems()).contains(system)) {
             throw new IllegalPositioningSystemArgument(system);
         }
         this.system = system;
@@ -103,7 +102,6 @@ public class Position implements Returnable<Position> {
     }
     // ----------------------------------------------------------
 
-    // Set positioning system:
     /**
      * convert to World coordinate system
      * @return This position instance for chaining
@@ -188,6 +186,7 @@ public class Position implements Returnable<Position> {
                 .getEnclosingMethod();
         throw new IllegalMethodUsage(method, system);
     }
+
 
     /**
      * Converts current position to Tile coordinates, except Screen position
@@ -284,19 +283,46 @@ public class Position implements Returnable<Position> {
     }
     // ----------------------------------------------------------
 
+    // Static Methods:
+    public static int convert(int pos, String from, String to) throws IllegalMethodUsage {
+        return switch (from) {
+            case W_WORLD -> switch (to) {
+                case W_CHUNK -> pos / (TILESIZE * CHUNKSIZE);
+                case W_TILE -> Utils.positionDivision(pos, TILESIZE);
+                case W_WORLD -> pos;
+                default -> throw new IllegalStateException("Unexpected target coordinate system: " + to);
+            };
+            case W_CHUNK -> switch (to) {
+                case W_WORLD -> pos * (TILESIZE * CHUNKSIZE);
+                case W_TILE -> pos * CHUNKSIZE;
+                case W_CHUNK -> pos;
+                default -> throw new IllegalStateException("Unexpected target coordinate system: " + to);
+            };
+            case W_TILE -> switch (to) {
+                case W_WORLD -> pos * TILESIZE;
+                case W_CHUNK -> pos / CHUNKSIZE;
+                case W_TILE -> pos;
+                default -> throw new IllegalStateException("Unexpected target coordinate system: " + to);
+            };
+            default -> throw new IllegalStateException("Unexpected source coordinate system: " + from);
+        };
+    }
+    // ----------------------------------------------------------
+
     // Overrides:
     @Override
     public String toString() {
         return vector.x() + ":" + vector.y();
     }
 
-    /**
-     * Creates a deep copy of this position
-     * @return New Position instance with identical coordinates and system
-     */
     @Override
     public Position copy(){
         return new Position(this.x(), this.y(), this.getSystem());
+    }
+
+    @Override
+    public Position clone() throws CloneNotSupportedException {
+        return (Position) super.clone();
     }
     // ----------------------------------------------------------
 }

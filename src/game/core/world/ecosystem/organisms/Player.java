@@ -51,7 +51,7 @@ public class Player extends Entity {
                 if (Vector2Distance(tile.getPosition().getVector2(), player.getPosition().getVector2()) <= (tileSize * 1.5) * worldScale) {
                     // assets.Tile Above Col (top):
                     if (
-                            tile.getCollision() && player.getPosition().x() < tile.getPosition().x() + (tileSize * worldScale) &&
+                            tile.isCollidable() && player.getPosition().x() < tile.getPosition().x() + (tileSize * worldScale) &&
                                     player.getPosition().x() >= tile.getPosition().x() &&
                                     player.getPosition().y() < tile.getPosition().y() &&
                                     player.getPosition().y() >= tile.getPosition().y() - (tileSize / 2 * worldScale)
@@ -69,7 +69,7 @@ public class Player extends Entity {
 
                     // Side Collision:
                     if (
-                            tile.getCollision() && tile.getCollision() && !tile.getCollision() &&
+                            tile.isCollidable() && tile.isCollidable() && !tile.isCollidable() &&
                             player.getPosition().y() >= tile.getPosition().y() &&
                             player.getPosition().y() <= tile.getPosition().y() + (tileSize * worldScale)
                     ){
@@ -90,7 +90,7 @@ public class Player extends Entity {
 
                     // Corner Collision left:
                     if (
-                            tile.getCollision() && tile.getCollision() && tile.getCollision() &&
+                            tile.isCollidable() && tile.isCollidable() && tile.isCollidable() &&
                             player.getPosition().y() >= tile.getPosition().y() - ( tileSize / 2 * worldScale) &&
                             (player.getPosition().y() < tile.getPosition().y() + ( tileSize / 2 * worldScale) && !player.state.get("grounded")) &&
                             player.getPosition().x() > tile.getPosition().x() - ( tileSize / 2 * worldScale) &&
@@ -101,7 +101,7 @@ public class Player extends Entity {
 
                     // Corner Collision Right:
                     if (
-                            tile.getCollision() && tile.getCollision() && tile.getCollision() &&
+                            tile.isCollidable() && tile.isCollidable() && tile.isCollidable() &&
                             player.getPosition().y() >= tile.getPosition().y() - ( tileSize / 2 * worldScale) &&
                             (player.getPosition().y() < tile.getPosition().y() + ( tileSize / 2 * worldScale) && !player.state.get("grounded")) &&
                             player.getPosition().x() <= tile.getPosition().x() + ( tileSize / 2 * worldScale) &&

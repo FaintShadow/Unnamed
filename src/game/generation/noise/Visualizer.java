@@ -12,7 +12,7 @@ import static game.core.world.type.BaseWorld.TILESCALEDSIZE;
 
 public class Visualizer {
 
-    private static final Perlin1D perlinNoise = new Perlin1D(0.5, 8);
+    private static final Perlin1D perlinNoise = new Perlin1D(0.5, 6);
 
     public static void drawPerlinPoints(){
         double graphX = 0;
